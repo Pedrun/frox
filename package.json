@@ -1,0 +1,22 @@
+{
+  "name": "disc-js-v13",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "roglang": "peggy --allowed-start-rules InstructionBlock,RollExpression roglang.peggy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/builders": "^0.8.2",
+    "@discordjs/rest": "*",
+    "discord-api-types": "^0.24.0",
+    "discord.js": "^13.3.1",
+    "dotenv": "^10.0.0",
+    "node-fetch": "^2.6.6",
+    "peggy": "^1.2.0"
+  }
+}
