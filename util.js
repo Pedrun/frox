@@ -28,7 +28,7 @@ module.exports = {
      * @param {string} str String with diacritics
      * @returns {string} String without diacritics
      */
-    latinize(str) {
+    normalizeStr(str) {
         if (typeof str !== 'string') throw new TypeError('Expected string');
         return str.normalize('NFD').replace(/[\u0300-\u036F]/g, '');
     },
