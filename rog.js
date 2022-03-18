@@ -15,14 +15,16 @@ function toJSON() {
   return json;
 }
 
-const possibleAttr = /^[A-Z_]+$/;
+const possibleAttr = /^[A-Z_]{1,32}$/;
 
 class Instance {
   constructor({
+    id="",
     users=[],
     settings={},
     skills=[]
   }) {
+    this.id = id;
     this.users = new Collection(users)
       .mapValues(v => new Player(v));
 
@@ -31,14 +33,32 @@ class Instance {
     this.skills = new Collection(skills);
   }
 
-  getUser(user) {
-    return this.users.get(user);
+  get guild() {
+    return "AAAAAAAAAAA";
+  }
+
+  createUser(userId) {
+    const newUser = new Player({
+      id:userId
+    });
+    this.users.set(userId, newUser);
+    return newUser;
+  }
+  hasUser(userId) {
+    return this.users.has(userId);
+  }
+  getUser(userId) {
+    return this.users.get(userId);
   }
 }
 Instance.prototype.toJSON = toJSON;
 
 class InstanceSettings {
-
+  constructor({
+    hideCard=false
+  }) {
+    this.hideCard = hideCard;
+  }
 }
 
 class Player {
@@ -56,18 +76,20 @@ class Player {
   }
 
   // Nickname-suffix-related methods
-  updateSuffix(member) {
-    const username = member.username;
+  async updateSuffix(member) {
+    const username = member.displayName;
 
-    let newTag = this.nameSuffix.replace(/\{([A-Z_]+)\}/g, (_match, attr) => {
+    let newTag = this.nameSuffix.replace(/\{([A-Z_]+)\}/g, (match, attr) => {
       if (this.hasAttr(attr)) {
         return this.getAttr(attr);
       }
+      return match;
     });
-    console.log(newTag, newTag.length);
     if (newTag.length < 1) return this;
 
-    let newUsername = username.replace(/\[.+?\]/, )
+    let newUsername = username.replace(/\[.*?\]/, `[${newTag}]`);
+    console.log(newUsername);
+    member.setNickname(newUsername);
   }
 
 
@@ -112,3 +134,15 @@ class Card {
   }
 }
 Card.prototype.toJSON = toJSON;
+
+
+
+// Export
+const Rog = {
+  client:{},
+  Instance,
+  InstanceSettings,
+  Player,
+  Card
+}
+module.exports = Rog;
