@@ -10,7 +10,7 @@ const componentFiles = fs.readdirSync("./components").filter(f => f.endsWith(".j
 const saveFiles = fs.readdirSync("./saves").filter(f => f.endsWith(".json"));
 
 require("dotenv").config();
-client.token = process.env.token;
+client.token = process.env.TOKEN;
 client.commands = new Discord.Collection();
 client.components = new Discord.Collection();
 client.instances = new Discord.Collection();
