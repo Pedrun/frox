@@ -1,11 +1,12 @@
 {
   "name": "disc-js-v13",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "roglang": "peggy --allowed-start-rules InstructionBlock,RollExpression roglang.peggy"
+    "deployrun": "node deploy-commands && node .",
+    "nodemon": "nodemon -i ./saves -x \"node deploy-commands && node .\""
   },
   "keywords": [],
   "author": "",

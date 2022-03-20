@@ -29,10 +29,10 @@ for (const saveFile of saveFiles) {
   client.instances.set(instance.id, instance);
 }
 
-async function saveInstances() {
-  client.instance.each((k,v) => {
-    fs.writeFile(`./saves/${k}`, JSON.stringify(v, null, '\t'), err => {
-      throw err;
+client.saveInstances = async function() {
+  client.instances.each((v,k) => {
+    fs.writeFile(`./saves/${k}.json`, JSON.stringify(v, null, '\t'), err => {
+      if (err) throw err;
     });
   });
   console.log(`[${chalk.greenBright("SAVE")}] Todos os saves foram salvados em "./saves" ${new Date()}`);
@@ -54,7 +54,8 @@ async function commandInteraction(interaction) {
 }
 
 async function componentInteraction(interaction) {
-  const component = client.components.get(interaction.customId);
+  const componentName = interaction.customId.split(":")[0];
+  const component = client.components.get(componentName);
   if (!component) return;
 
   try {
@@ -73,7 +74,7 @@ client.on('ready', () => {
 });
 
 client.on("interactionCreate", (interaction) => {
-  console.log(interaction);
+  //console.log(interaction);
   if (interaction.isMessageComponent())
     componentInteraction(interaction);
   if (interaction.isCommand() || interaction.isContextMenu())
@@ -81,8 +82,21 @@ client.on("interactionCreate", (interaction) => {
 });
 
 client.on("guildCreate", (guild) => {
-  console
+  client.instances.set(guild.id, new Rog.Instance({ id: guild.id }));
+  console.log(`[${chalk.blueBright("GUILD")}] "${guild}" criada, adicionada Instance da mesma`);
+  client.saveInstances();
 });
 
+client.on("guildDelete", (guild) => {
+  client.instances.delete(guild);
+  const insPath = `./saves/${guild.id}`;
+  if (fs.existsSync(insPath)) {
+    fs.unlink(insPath, (err) => {
+      if (err) throw err;
+    });
+  }
+  console.log(`[${chalk.redBright("GUILD")}] "${guild}" deletada`);
+})
+
 client.login();
-setInterval(saveInstances, 180000);
+setInterval(client.saveInstances, 1800000);

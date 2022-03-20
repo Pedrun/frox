@@ -3,7 +3,7 @@ const { normalizeStr } = require("./util");
 
 function toJSON() {
   let json = {};
-  for (let [key, val] in Object.entries(this)) {
+  for (let [key, val] of Object.entries(this)) {
     if (val instanceof Map) {
       json[key] = Array.from(val);
       continue;
@@ -26,15 +26,14 @@ class Instance {
   }) {
     this.id = id;
     this.users = new Collection(users)
-      .mapValues(v => new Player(v));
+      .mapValues(v => new Player({...v, guildId:this.id}));
 
     this.settings = new InstanceSettings(settings);
-
     this.skills = new Collection(skills);
   }
 
   get guild() {
-    return "AAAAAAAAAAA";
+    return Rog.client.guilds.fetch(this.id);
   }
 
   createUser(userId) {
@@ -55,87 +54,132 @@ Instance.prototype.toJSON = toJSON;
 
 class InstanceSettings {
   constructor({
-    hideCard=false
+    listChannel="",
+    DMrole=""
   }) {
-    this.hideCard = hideCard;
+    this.listChannel = listChannel;
+    this.DMrole = DMrole;
   }
 }
 
 class Player {
   constructor({
     id="",
+    guildId="",
     nameSuffix="",
+    suffixSeparator="[",
     cardIndex=0,
     cards=[]
   }) {
     this.id = id;
+    this.guildId = guildId;
     this.nameSuffix = nameSuffix;
+    this.suffixSeparator = suffixSeparator;
 
     this.cardIndex = cardIndex;
     this.cards = cards.map(c => new Card(c));
   }
 
   // Nickname-suffix-related methods
-  async updateSuffix(member) {
-    const username = member.displayName;
+  async updateSuffix() {
+    if (this.nameSuffix.length < 1) return;
+
+    const guild = await this.instance.guild;
+    if (!guild) return;
+
+    const member = await guild.members.fetch(this.id);
+    if (!member) return;
+
+    let username = member.displayName;
+    username = username.split(this.suffixSeparator)[0];
 
     let newTag = this.nameSuffix.replace(/\{([A-Z_]+)\}/g, (match, attr) => {
-      if (this.hasAttr(attr)) {
-        return this.getAttr(attr);
+      if (this.card.hasAttr(attr)) {
+        return this.card.getAttr(attr);
       }
       return match;
     });
-    if (newTag.length < 1) return this;
 
-    let newUsername = username.replace(/\[.*?\]/, `[${newTag}]`);
-    console.log(newUsername);
-    member.setNickname(newUsername);
+    username = username.slice(0,32-newTag.length);
+    let newUsername = username + newTag;
+    try { 
+      member.setNickname(newUsername);
+    } catch (err) {
+      // console.log(err)
+    }
   }
-
+  
+  // Instance getter
+  get instance() {
+    return client.instances.get(this.guild);
+  }
 
   // Card-related methods
   get card() {
     return this.cards[this.cardIndex];
-  }
-  
-
-  // Attribute-related methods
-  hasAttr(attr) {
-    let cleanAttr = normalizeStr(attr.toUpperCase());
-    return this.card.attributes.has(cleanAttr);
-  }
-  getAttr(attr) {
-    let cleanAttr = normalizeStr(attr.toUpperCase());
-    if (this.hasAttr(cleanAttr)) {
-      return this.card.attributes.get(cleanAttr);
-    } else {
-      return null;
-    }
-  }
-  setAttr(attr, value) {
-    let cleanAttr = normalizeStr(attr.toUpperCase());
-    let val = Math.floor(Number(value));
-    if (this.hasAttr(cleanAttr)) {
-      this.card.attributes.set(cleanAttr, val);
-    } else {
-      throw new ReferenceError(`"${cleanAttr}" is not a defined attribute`);
-    }
-    return this;
   }
 }
 
 class Card {
   constructor({
     name="",
-    attributes=[]
+    color="",
+    attributes=[],
+    isPrivate=false
   }) {
     this.name = name;
+    this.color = color;
     this.attributes = new Collection(attributes);
+    this.isPrivate = isPrivate;
+  }
+
+  hasAttr(attr) {
+    let cleanAttr = normalizeStr(attr.toUpperCase());
+    return this.attributes.has(cleanAttr);
+  }
+  getAttr(attr) {
+    let cleanAttr = normalizeStr(attr.toUpperCase());
+    return this.attributes.get(cleanAttr);
+  }
+  setAttr(attr, value) {
+    let cleanAttr = normalizeStr(attr.toUpperCase());
+    let val = parseInt(value);
+
+    if (!val) 
+      throw TypeError('"value" cannot be converted to number');
+    
+    if (!this.hasAttr(cleanAttr))
+      throw ReferenceError(`"${cleanAttr}" is not a defined attribute`);
+    
+    this.attributes.set(cleanAttr, val);
+    return this;
+  }
+  addAttr(attr, value) {
+    let cleanAttr = normalizeStr(attr.toUpperCase());
+    let val = parseInt(value) || 0;
+    
+    if (!possibleAttr.test(cleanAttr))
+      throw SyntaxError(`"attr" does not match the regex ${possibleAttr}`)
+
+    this.attributes.set(cleanAttr, val);
+    return this;
+  }
+  removeAttr(attr) {
+    let cleanAttr = normalizeStr(attr.toUpperCase());
+    if (this.hasAttr(cleanAttr))
+      this.attributes.delete(cleanAttr);
+    return this;
+  }
+  setPrivate(value) {
+    this.private = !!value;
+    return this;
   }
 }
 Card.prototype.toJSON = toJSON;
 
-
+function hasDMPermissions(member, DMrole) {
+  return member.roles.cache.has(DMrole) || member.permissions.has(8n);
+}
 
 // Export
 const Rog = {
@@ -143,6 +187,7 @@ const Rog = {
   Instance,
   InstanceSettings,
   Player,
-  Card
+  Card,
+  hasDMPermissions
 }
 module.exports = Rog;
