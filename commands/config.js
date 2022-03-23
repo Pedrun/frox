@@ -33,14 +33,7 @@ module.exports = {
     ),
   async execute(interaction, client) {
     const subcommand = interaction.options.getSubcommand();
-    const guild = interaction.guild;
-    
-    let init = false;
-    if (!client.instances.has(guild.id)) {
-      init = true;
-      client.instances.set(guild.id, new Instance({ id:guild.id }));
-    }
-    const instance = client.instances.get(guild.id);
+    const instance = client.instances.greate(interaction.guildId);
     
     switch(subcommand) {
       case 'list':
@@ -65,13 +58,6 @@ module.exports = {
           content: "Tem certeza? Essa ação **excuirá todas as fichas, atributos, configurações e etc. deste servidor.**",
           components: [row]
         });
-        break;
-      case 'init':
-        if (init)
-          interaction.reply({content:"Servidor inicializado!"});
-        else
-          interaction.reply({content:`${interaction.user}, Esse servidor já foi inicializado antes! D:<`, ephemeral:true});
-        client.saveInstances();
         break;
       case 'mestre':
         const DMrole = interaction.options.getRole("cargo");

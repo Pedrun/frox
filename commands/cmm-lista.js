@@ -5,7 +5,8 @@ module.exports = {
     .setName("Adicionar à Lista")
     .setType(3),
   async execute(interaction, client) {
-    const instance = client.instances.get(interaction.guild.id);
+    const instance = client.instances.greate(interaction.guild.id);
+
     const { listChannel } = instance.settings;
     
     if (listChannel.length < 1)

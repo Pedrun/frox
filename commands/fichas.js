@@ -63,17 +63,12 @@ module.exports = {
    */
   async execute(interaction, client) {
     const subCommand = interaction.options.getSubcommand();
-    const instance = client.instances.get(interaction.guildId);
-    if (!instance) {
-      return interaction.reply({content:`${interaction.user}, Esse servidor ainda não foi inicializado. Use \` /config init \` e tente novamente.`})
-    }
-    if (!instance.hasUser(interaction.user.id)) {
-      instance.createUser(interaction.user.id);
-    }
-    const player = instance.getUser(interaction.user.id);
+    const instance = client.instances.greate(interaction.guildId);
+    const player = instance.greateUser(interaction.user.id);
+
     if (subCommand === "lista") {
       let fichas = player.cards.reduce(
-        (a,b,i) => a + `${player.cardIndex===i?"> **":""}${b.name}${player.cardIndex===i?"**":""}\n`,
+        (a,b,i) => a + `${player.cardIndex===i?"> ":"- "}${player.cardIndex===i?"**":""}${b.name}${player.cardIndex===i?" [ATUAL]**":""}\n`,
         ""
       );
       const embed = new MessageEmbed()
@@ -84,13 +79,17 @@ module.exports = {
       const component = new MessageActionRow()
       .addComponents([
         new MessageButton()
-          .setLabel("↓")
-          .setCustomId(`selectcard:${player.id}:D`)
+          .setLabel("↑")
+          .setCustomId(`selectcard:${player.id}:U:${player.cardIndex}`)
           .setStyle('SECONDARY'),
         new MessageButton()
-          .setLabel("↑")
-          .setCustomId(`selectcard:${player.id}:U`)
-          .setStyle('SECONDARY')
+          .setLabel("↓")
+          .setCustomId(`selectcard:${player.id}:D:${player.cardIndex}`)
+          .setStyle('SECONDARY'),
+        new MessageButton()
+          .setLabel("Selecionar")
+          .setCustomId(`selectcard:${player.id}:S:${player.cardIndex}`)
+          .setStyle('PRIMARY')
       ])
       interaction.reply({embeds:[embed], components:[component]});
 

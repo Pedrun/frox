@@ -13,7 +13,7 @@ require("dotenv").config();
 client.token = process.env.TOKEN;
 client.commands = new Discord.Collection();
 client.components = new Discord.Collection();
-client.instances = new Discord.Collection();
+client.instances = new Rog.InstanceHolder();
 Rog.client = client;
 
 for (const commandFile of commandFiles) {

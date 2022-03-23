@@ -17,6 +17,16 @@ function toJSON() {
 
 const possibleAttr = /^[A-Z_]{1,32}$/;
 
+class InstanceHolder extends Collection {
+  greate(key) {
+    if (this.has(key))
+      return this.get(key);
+    const newInstance = new Instance({ id:key });
+    this.set(key, newInstance);
+    return newInstance;
+  }
+}
+
 class Instance {
   constructor({
     id="",
@@ -48,6 +58,12 @@ class Instance {
   }
   getUser(userId) {
     return this.users.get(userId);
+  }
+  greateUser(userId) {
+    if (this.hasUser(userId)) {
+      return this.getUser(userId);
+    }
+    return this.createUser(userId);
   }
 }
 Instance.prototype.toJSON = toJSON;
@@ -184,6 +200,7 @@ function hasDMPermissions(member, DMrole) {
 // Export
 const Rog = {
   client:{},
+  InstanceHolder,
   Instance,
   InstanceSettings,
   Player,
