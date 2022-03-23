@@ -188,6 +188,7 @@ const Rog = {
   InstanceSettings,
   Player,
   Card,
-  hasDMPermissions
+  hasDMPermissions,
+  possibleAttr
 }
 module.exports = Rog;

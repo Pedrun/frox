@@ -1,8 +1,9 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { CommandInteraction } = require("discord.js");
+const { normalizeStr } = require("../util.js");
 
 /*
-/ficha atributo adicionar atributo:String
+/ficha atributo adicionar atributo:String valor?:String
 /ficha atributo remover atributo:String
 /ficha renomear nome:String
 /ficha cor cor?:String
@@ -23,6 +24,10 @@ module.exports = {
           option.setName('atributo')
           .setDescription('Atributo a ser adicionado')
           .setRequired(true)
+        )
+        .addIntegerOption(option => 
+          option.setName('valor')
+          .setDescription('Valor inicial do atributo (deixe em branco para 0)')
         )
       )
       .addSubcommand(subCommand =>
@@ -65,6 +70,33 @@ module.exports = {
    * @param {CommandInteraction} interaction 
    */
   async execute(interaction, client) {
+    const subCommand = interaction.options.getSubCommand();
+    const instance = client.instances.get(interaction.guildId);
+    if (!instance)
+      return interaction.reply({content:`${interaction.user}, Esse servidor não foi inicializado. Use \` /config init \``, ephemeral:true});
     
+    const player = instance.getUser(interaction.user.id);
+    if (!player && player.card)
+      return interaction.reply({content:`${interaction.user}, Não consegui encontrar sua ficha. Use \` /fichas criar \` para criar uma`, ephemeral:true});
+   
+    if (subCommand === 'adicionar') {
+      const nome = normalizeStr(interaction.options.getString('nome')).toUpperCase();
+      const valor = interaction.options.getInteger("valor");
+
+      if (!possibleAttr.test(nome))
+	return interaction.reply({content:`${interaction.user}, **"${nome}"** não é um nome de atributo válido. apenas são aceitas letras de **A-Z**, ** _** e **sem espaços**`, ephemeral:true});
+      
+      player.card.addAtrr(nome, valor);
+      interaction.reply({content:`O atributo **"${nome}"** foi adcionado com o valor inicial de ${valor}`});
+      client.saveInstances();
+    } else if (subCommand === 'remover') {
+
+    } else if (subCommand === 'renomear') {
+
+    } else if (subCommand === 'cor') {
+
+    } else if (subCommand === 'privar') {
+
+    } 
   }
 }
