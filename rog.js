@@ -141,6 +141,7 @@ class Card {
     name="",
     color="",
     attributes=[],
+    displays=[],
     isPrivate=false
   }) {
     this.name = name;
@@ -190,8 +191,41 @@ class Card {
     this.private = !!value;
     return this;
   }
+
+  displayToString(display) {
+    if (display == null) return;
+    let values = display.value.map(this.getAttr);
+
+    let bar = "";
+    if (display.type === CardDisplay.Type.BAR && values[1]) {
+      const percentage = values[0] / values[1];
+      let barCount = Math.round(percentage * 10);
+
+      bar = `[${'|'.repeat(barCount)}${' '.repeat(10-barCount}]`;
+    }
+
+    return values.join(" / ") + "\n" + bar;
+  }
 }
 Card.prototype.toJSON = toJSON;
+
+class CardDisplay {
+  constructor({
+    name="", 
+    type=-1, 
+    value=[]
+  }) {
+    this.name = name;
+    this.type = type;
+    this.value = value;
+  }
+
+  static Types = {
+    "PLAIN":0,
+    "PAIR":1,
+    "BAR":2
+  }
+}
 
 function hasDMPermissions(member, DMrole) {
   return member.roles.cache.has(DMrole) || member.permissions.has(8n);
@@ -205,6 +239,7 @@ const Rog = {
   InstanceSettings,
   Player,
   Card,
+  CardDisplay,
   hasDMPermissions,
   possibleAttr
 }

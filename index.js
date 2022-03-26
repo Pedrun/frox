@@ -46,7 +46,7 @@ async function commandInteraction(interaction) {
     await command.execute(interaction, client);
   } catch(e) {
     console.log(e);
-    await interaction.reply({
+    if (!interaction.replied && !interaction.deferred) await interaction.reply({
       content:"Ocorreu um erro ao tentar executar esse comando! (o-o;;",
       ephemeral:true
     });
