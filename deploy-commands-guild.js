@@ -14,9 +14,9 @@ for(const file of commandFiles) {
 
 const rest = new REST({ version: '9' }).setToken(TOKEN);
 
-rest.put(Routes.applicationCommands(CLIENTID), { body: commands })
-	.then(() => console.log('Successfully registered application commands.'))
-	.catch(console.error);
-// rest.put(Routes.applicationGuildCommands(CLIENTID, GUILDID), { body: commands })
+// rest.put(Routes.applicationCommands(CLIENTID), { body: commands })
 // 	.then(() => console.log('Successfully registered application commands.'))
 // 	.catch(console.error);
+rest.put(Routes.applicationGuildCommands(CLIENTID, GUILDID), { body: commands })
+	.then(() => console.log('Successfully registered application commands.'))
+	.catch(console.error);
