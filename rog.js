@@ -211,6 +211,8 @@ class Card {
     let barCount;
     if (ratio > 1 || isNaN(ratio))
       barCount = barMax;
+    else if (ratio < 0)
+      barCount = 0;
     else
       barCount = Math.round(ratio*barMax);
 
