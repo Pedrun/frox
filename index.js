@@ -2,7 +2,8 @@ const Discord = require("discord.js");
 const fs = require("fs");
 const chalk = require("chalk");
 const Rog = require("./rog");
-const RogLang = require("./parser/roglang_v1.js")
+const RogLang = require("./parser/roglang_v1.js");
+const { normalizeStr } = require("./util");
 
 const { Intents } = Discord;
 const client = new Discord.Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
@@ -88,7 +89,7 @@ client.on("messageCreate", (message) => {
   const prefix = content.startsWith("=");
 
   if (prefix) 
-    content = content.slice(1).trim()
+    content = normalizeStr(content.slice(1).trim());
 
   const instance = client.instances.greate(message.guildId);
   const player = instance.greateUser(message.author.id);
