@@ -88,8 +88,9 @@ client.on("messageCreate", (message) => {
   let { content } = message;
   const prefix = content.startsWith("=");
 
+  content = normalizeStr(content);
   if (prefix) 
-    content = normalizeStr(content.slice(1).trim());
+    content = content.slice(1).trim()
 
   const instance = client.instances.greate(message.guildId);
   const player = instance.greateUser(message.author.id);
