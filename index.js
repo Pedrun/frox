@@ -44,6 +44,7 @@ async function commandInteraction(interaction) {
   const command = client.commands.get(interaction.commandName);
   if (!command) return;
 
+  console.log(`[${chalk.cyan(interaction.toString())}] (${interaction.user.tag}) ${chalk.magenta(interaction.createdAt)}`);
   try {
     await command.execute(interaction, client);
   } catch(e) {
@@ -56,10 +57,12 @@ async function commandInteraction(interaction) {
 }
 
 async function componentInteraction(interaction) {
-  const componentName = interaction.customId.split(":")[0];
+  const [ componentName ] = interaction.customId.split(":",1);
+  
   const component = client.components.get(componentName);
   if (!component) return;
 
+  console.log(`[${chalk.cyan(interaction.customId)}] (${interaction.user.tag}) ${chalk.magenta(interaction.createdAt)}`);
   try {
     await component.execute(interaction, client);
   } catch(e) {
@@ -71,8 +74,20 @@ async function componentInteraction(interaction) {
   }
 }
 
-client.on('ready', () => {
+client.on('ready', async () => {
   console.log("Pronto!");
+  
+  const guilds = await client.guilds.cache;
+  console.group(chalk.yellowBright("Guilds"));
+  for (const [,guild] of guilds) {
+    console.group(`${chalk.cyanBright(guild.name)} [${guild.memberCount}]`);
+    console.log(`${chalk.green("id:")} ${guild.id}`);
+    console.log(`${chalk.green("icon:")} ${guild.iconURL()}`);
+    console.log(`${chalk.green("joined:")} ${chalk.magenta(guild.joinedAt)}`);
+    console.log()
+    console.groupEnd();
+  }
+  console.groupEnd();
 });
 
 client.on("interactionCreate", (interaction) => {
