@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('gato')
+    .setName('meow')
     .setDescription('Foto de um gatinho aleatório!'),
   async execute(interaction) {
     await interaction.deferReply();

@@ -20,10 +20,6 @@ module.exports = {
       .setDescription("Reseta todas as informações refetentes a este servidor")
     )
     .addSubcommand(subCommand => 
-      subCommand.setName("init")
-      .setDescription("Inicializa um servidor se não foi inicializado anteriormente")
-    )
-    .addSubcommand(subCommand => 
       subCommand.setName("mestre")
       .setDescription("Define o cargo de Mestre")
       .addRoleOption(option => 
@@ -36,7 +32,7 @@ module.exports = {
     const instance = client.instances.greate(interaction.guildId);
     
     switch(subcommand) {
-      case 'list':
+      case 'lista':
         const listChannel = interaction.options.getChannel('canal');
         if (listChannel) {
           instance.settings.listChannel = listChannel.id;

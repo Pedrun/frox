@@ -1,7 +1,0 @@
-[ %DMG %DICE @Target#2 @Target]
-
-Self
-set DMG, 23 + 80 * 200%
-1: >exp DMG
-Dado: >set DICE, d100
-Resultado: >exp DICE + DMG

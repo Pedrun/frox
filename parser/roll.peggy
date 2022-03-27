@@ -1,7 +1,6 @@
 {{
   // Requirements
-  const Util = require('../util.js');
-  const { Collection } = require('discord.js');
+  const Util = require('./util.js');
   
   // Functions
   function makeInteger(text) {
@@ -153,76 +152,24 @@
 /* ----------------------------------------------------------- */
 
 {
-  let { varCol, attrCol } = options;
-  
-  if (!varCol)
-    varCol = new Collection();
-
-  if (!attrCol)
-    attrCol = new Collection();
+  const ATTRIBUTES = {};
+  for (const arg in this.args) {
+    let newArg = Util.latinize(arg);
+    ATTRIBUTES[newArg] = this.args[arg]; 
+  }
 }
 
 /* ----------------------------------------------------------- */
 
-InstructionBlock
-  = Instruction (___ Instruction)* {
-    return { varCol, attrCol }
-  } 
-
-Instruction
-  = DefineInstruction
-  / SetInstruction
-  / AddInstruction
-  / SubtractInstruction
-  / PrintInstruction
-  / CompletePrintInstruction
-
-DefineInstruction
-  = "def" ___ k:Key {
-    varCol.set(k, 0);
-  }
-SetInstruction
-  = "set" ___ k:Key ArgSeparator v:RollExpression {
-    if (attrCol.has(k)) 
-      attrCol.set(k, v.value);
-    else if (varCol.has(k))
-      varCol.set(k, v.value);
-    else error(`Não foi possível encontrar atributo ou variável "${k}"`);
-  }
-AddInstruction
-  = "add" ___ k:Key ArgSeparator v:RollExpression {
-    if (attrCol.has(k)) 
-      attrCol.set(k, attrCol.get(k) + v.value);
-    else if (varCol.has(k))
-      varCol.set(k, varCol.get(k) + v.value);
-    else error(`Não foi possível encontrar atributo ou variável "${k}"`);
-  }
-SubtractInstruction
-  = "sub" ___ k:Key ArgSeparator v:RollExpression {
-    if (attrCol.has(k)) 
-      attrCol.set(k, attrCol.get(k) - v.value);
-    else if (varCol.has(k))
-      varCol.set(k, varCol.get(k) - v.value);
-    else error(`Não foi possível encontrar atributo ou variável "${k}"`);
-  }
-PrintInstruction
-  = "prt" ___ '"' txt:$[^"]+ '"' ArgSeparator v:RollExpression {
-    console.log(txt.replace("$", `\` ${v.value} \``));
-  }
-CompletePrintInstruction
-  = "cprt" ___ '"' txt:$[^"]+ '"' ArgSeparator v:RollExpression {
-    console.log(txt.replace("$", `\` ${v.value} \` ⟵ ${v.pretties}`));
-  }
-
-ArgSeparator
-  = _ ',' _
-
-/* ----------------------------------------------------------- */
-
-RollExpression
+start
   = _ result:Comparator {
     result.values = [result.value];
     return result;
+  }
+
+Label
+  = _____ label:Garbage? {
+    return label;
   }
 
 Comparator
@@ -309,9 +256,8 @@ Expression
     return result;
   }
 
-  
 Term
-  = left:Factor right:(_ ("*" / "/") _ Factor)* {
+  = left:Percentage right:(_ ("*" / "/") _ Percentage)* {
     let result = left, i;
     for (i = 0; i < right.length; i++) {
       let current = right[i][3];
@@ -330,10 +276,21 @@ Term
     }
     return result;
   }
+Percentage
+  = left:Factor _ "%" {
+    left.depth += 1;
+    left.value /= 100;
+    left.values = [left.value];
+    left.pretties += "%"
+
+    return left;
+  }
+  / Factor
 
 Factor
   = "(" _ expr:Expression _ ")" {
     expr.depth += 1;
+    expr.pretties = "(" + expr.pretties + ")"
     return expr;
   }
   / BasicRoll
@@ -447,20 +404,17 @@ Integer "integer"
   = "-"?[0-9]+ {
     return makeInteger(text());
   }
-  / attr:Key &{ return attrCol.has(attr) } {
-    return makeInteger(attrCol.get(attr));
-  }
-  / variable:Key &{ return varCol.has(variable) } {
-    return makeInteger(varCol.get(variable));
+  / attr:ValidAttribute &{ return attr in ATTRIBUTES } {
+    return makeInteger(ATTRIBUTES[attr]);
   }
 
-Key
-  = $[A-Z]+
+ValidAttribute
+  = v:[A-Z]+ { return v.join('').toLowerCase() }
 
 _ "whitespace"
   = [   \n\r]*
 
-___ "forced whitespace"
+_____ "forced whitespace"
 = [   \n\r]+
 
 Garbage "any characters"

@@ -1,32 +1,24 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed, MessageActionRow, MessageButton, CommandInteraction } = require('discord.js');
+const { MessageEmbed, MessageActionRow, MessageButton, MessageComponentInteraction } = require('discord.js');
 const { hasDMPermissions } = require('../rog.js');
 const { version } = require("../package.json");
-
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("f")
-    .setDescription("Abre a sua ficha de personagem atual")
-    .addUserOption(option =>
-      option.setName("usuário")
-        .setDescription("O usuario quem pertence a ficha. (Opcional, deixe em branco para abrir a sua própria)")
-    ),
+  name:"card",
   /**
-   * @param {CommandInteraction} interaction 
+   * @param {MessageComponentInteraction} interaction 
    */
   async execute(interaction, client) {
-    const user = interaction.options.getUser("usuário")?.id || interaction.user.id;
+    let [_name, user, page] = interaction.customId.split(":");
+    page = parseInt(page);
     const member = await interaction.guild.members.fetch(user);
     const instance = client.instances.greate(interaction.guildId);
     const player = instance.greateUser(user);
-    
+
     if (!player.card)
       return interaction.reply({ content: `${interaction.user}, **Não encontrei nenhuma ficha.** *Crie uma lista usando \` /fichas criar \`*`, ephemeral:true});
     if (player.card.isPrivate && interaction.user.id !== member.user.id && !hasDMPermissions(interaction.member, instance.settings.DMrole)) {
       return interaction.reply({ content: `${interaction.user}, **Você não tem permissão para ver essa ficha**`, ephemeral:true});
     }
 
-    const page = 0;
     const indexRange = [page*16, (page*16)+15];
     let indexCount = 0;
     const field = player.card.attributes.reduce(
@@ -74,7 +66,7 @@ module.exports = {
         .setStyle('SUCCESS')
         .setDisabled(true)
     );
-   interaction.reply({ embeds: [embed], components: [row], ephemeral: player.card.isPrivate });
+   interaction.update({ embeds: [embed], components: [row], ephemeral: player.card.isPrivate });
   }
 }
 

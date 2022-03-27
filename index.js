@@ -2,9 +2,10 @@ const Discord = require("discord.js");
 const fs = require("fs");
 const chalk = require("chalk");
 const Rog = require("./rog");
+const RogLang = require("./parser/roglang_v1.js")
 
 const { Intents } = Discord;
-const client = new Discord.Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] });
+const client = new Discord.Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
 const commandFiles = fs.readdirSync("./commands").filter(f => f.endsWith(".js"));
 const componentFiles = fs.readdirSync("./components").filter(f => f.endsWith(".js"));
 const saveFiles = fs.readdirSync("./saves").filter(f => f.endsWith(".json"));
@@ -80,6 +81,27 @@ client.on("interactionCreate", (interaction) => {
   if (interaction.isCommand() || interaction.isContextMenu())
     commandInteraction(interaction);
 });
+
+client.on("messageCreate", (message) => {
+  if (message.author.bot) return;
+  let { content } = message;
+  const prefix = content.startsWith("=");
+
+  if (prefix) 
+    content = content.slice(1).trim()
+
+  const instance = client.instances.greate(message.guildId);
+  const player = instance.greateUser(message.author.id);
+  try {
+    let { value, pretties, dice } = RogLang.parse(content, {player:player});
+    if (dice < 1 && !prefix) return;
+
+    if (typeof value === "boolean")
+      value = value?"Sucesso":"Falha";
+    message.channel.send(`\` ${value.toLocaleString('pt-BR')} \` ⟵ ${pretties}`);
+  } catch (e) {
+  }
+})
 
 client.on("guildCreate", (guild) => {
   client.instances.set(guild.id, new Rog.Instance({ id: guild.id }));

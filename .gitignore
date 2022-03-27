@@ -1,3 +1,4 @@
+node_modules
+emotes
 .env
-node_modules/*
-saves/*
+saves

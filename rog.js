@@ -93,7 +93,7 @@ class Player {
     this.suffixSeparator = suffixSeparator;
 
     this.cardIndex = cardIndex;
-    this.cards = cards.map(c => new Card(c));
+    this.cards = cards.map(c => new Card({...c, playerId:this.id, guildId:this.guildId}));
   }
 
   // Nickname-suffix-related methods
@@ -139,14 +139,21 @@ class Player {
 class Card {
   constructor({
     name="",
+    playerId="",
+    guildId="",
     color="",
     attributes=[],
-    displays=[],
+    bars=[],
     isPrivate=false
   }) {
     this.name = name;
+    this.playerId = playerId;
+    this.guildId = guildId;
     this.color = color;
     this.attributes = new Collection(attributes);
+
+    this.bars = bars.map(b => new CardBar({...b, playerId:this.playerId, guildId:this.guildId}))
+
     this.isPrivate = isPrivate;
   }
 
@@ -162,7 +169,7 @@ class Card {
     let cleanAttr = normalizeStr(attr.toUpperCase());
     let val = parseInt(value);
 
-    if (!val) 
+    if (val == null) 
       throw TypeError('"value" cannot be converted to number');
     
     if (!this.hasAttr(cleanAttr))
@@ -192,38 +199,36 @@ class Card {
     return this;
   }
 
-  displayToString(display) {
-    if (display == null) return;
-    let values = display.value.map(this.getAttr);
+  /**
+   * @param {CardBar} bar 
+   */
+  getBar(bar, barMax=6, fill="<:bar:957419774533591091>", empty="<:barempty:957419773954760735>") {
+    let value = this.getAttr(bar.value);
+    let max = this.getAttr(bar.max);
+    if (value == null || max == null) return "ATRIBUTO INVÁLIDO";
 
-    let bar = "";
-    if (display.type === CardDisplay.Type.BAR && values[1]) {
-      const percentage = values[0] / values[1];
-      let barCount = Math.round(percentage * 10);
+    const ratio = value/max;
+    let barCount;
+    if (ratio > 1 || isNaN(ratio))
+      barCount = barMax;
+    else
+      barCount = Math.round(ratio*barMax);
 
-      bar = `[${'|'.repeat(barCount)}${' '.repeat(10-barCount}]`;
-    }
-
-    return values.join(" / ") + "\n" + bar;
+    // return `${value}/${max} (${Math.round(ratio * 100)}%)\n\`[${"█".repeat(barCount)}${" ".repeat(barMax-barCount)}]\``;
+    return `${value}/${max} (${Math.round(ratio * 100)}%)\n[${fill.repeat(barCount)}${empty.repeat(barMax-barCount)}]`;
   }
 }
 Card.prototype.toJSON = toJSON;
 
-class CardDisplay {
+class CardBar {
   constructor({
-    name="", 
-    type=-1, 
-    value=[]
+    name="",
+    value="",
+    max=""
   }) {
     this.name = name;
-    this.type = type;
     this.value = value;
-  }
-
-  static Types = {
-    "PLAIN":0,
-    "PAIR":1,
-    "BAR":2
+    this.max = max;
   }
 }
 
@@ -239,7 +244,7 @@ const Rog = {
   InstanceSettings,
   Player,
   Card,
-  CardDisplay,
+  CardBar,
   hasDMPermissions,
   possibleAttr
 }
