@@ -202,7 +202,7 @@ class Card {
   /**
    * @param {CardBar} bar 
    */
-  getBar(bar, barMax=6, fill="<:bar:957419774533591091>", empty="<:barempty:957419773954760735>") {
+  getBar(bar, barMax=6, fill="<:bar2:957638608490217502>", empty="<:barempty2:957638608557322270>") {
     let value = this.getAttr(bar.value);
     let max = this.getAttr(bar.max);
     if (value == null || max == null) return "ATRIBUTO INVÁLIDO";

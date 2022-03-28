@@ -297,7 +297,7 @@ Percentage
   / Factor
 
 Factor
-  = "(" _ expr:Expression _ ")" {
+  = "(" _ expr:Comparator _ ")" {
     expr.depth += 1;
     expr.pretties = "(" + expr.pretties + ")"
     return expr;

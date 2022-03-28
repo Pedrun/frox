@@ -24,7 +24,6 @@ module.exports = {
       cardIndex = clamp(cardIndex + direction, 0, player.cards.length-1);
     }
     
-    console.log(operation, cardIndex, player.cardIndex, player.cards.length)
     let fichas = player.cards.reduce(
       (a,b,i) => a + `${cardIndex===i?"> ":"- "}${player.cardIndex===i?"**":""}${b.name}${player.cardIndex===i?" [ATUAL]**":""}\n`,
       ""

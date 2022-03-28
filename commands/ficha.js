@@ -201,6 +201,8 @@ module.exports = {
           .setTitle(`A cor de ${player.card.name} foi mudada para a cor padrão (cor do cargo)`)
           .setColor(interaction.member.displayColor);
         interaction.reply({ embeds: [embed] });
+        client.saveInstances();
+        return;
       }
 
       if (!colorRegex.test(cor))

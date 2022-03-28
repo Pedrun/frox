@@ -37,7 +37,7 @@ client.saveInstances = async function() {
       if (err) throw err;
     });
   });
-  console.log(`[${chalk.greenBright("SAVE")}] Todos os saves foram salvados em "./saves" ${new Date()}`);
+  console.log(`[${chalk.greenBright("SAVE")}] Todos os saves foram salvos em "./saves" ${new Date()}`);
 }
 
 async function commandInteraction(interaction) {
@@ -48,7 +48,7 @@ async function commandInteraction(interaction) {
   try {
     await command.execute(interaction, client);
   } catch(e) {
-    console.log(e);
+    console.log(chalk.red(e));
     if (!interaction.replied && !interaction.deferred) await interaction.reply({
       content:"Ocorreu um erro ao tentar executar esse comando! (o-o;;",
       ephemeral:true
@@ -66,7 +66,7 @@ async function componentInteraction(interaction) {
   try {
     await component.execute(interaction, client);
   } catch(e) {
-    console.log(e);
+    console.log(chalk.red(e));
     await interaction.reply({
       content:"Ocorreu um erro ao tentar executar essa ação! (o-o;;",
       ephemeral:true

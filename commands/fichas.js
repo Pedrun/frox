@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { CommandInteraction, MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
-const { Card } = require("../rog");
+const { Card, hasDMPermissions } = require("../rog");
 /*
 /fichas lista
 /fichas criar nome:String
@@ -148,16 +148,16 @@ module.exports = {
       const targetPlayer = instance.getUser(targetUser.id);
 
       let nome = interaction.options.getString("nome").toLowerCase();
-      let searchCard = -1;
-      targetPlayer.cards.forEach((c,i) => {
-        if (c.name.toLowerCase() === nome) {
-          searchCard = i;
-        }
-      });
+      let searchCard = targetPlayer.cards.findIndex((c) => c.name.toLowerCase() == nome);
       if (searchCard < 0) {
         return interaction.reply({content:`${interaction.user}, Não encontrei nenhuma ficha de ${targetUser} com o nome de "${nome}"`, ephemeral:true});
       }
-      const newCard = new Card(targetPlayer.cards[searchCard].toJSON);
+      const copyCard = targetPlayer.cards[searchCard];
+      
+      if (copyCard.isPrivate && targetPlayer.id !== player.id && !hasDMPermissions(instance.member, instance.settings.DMrole))
+        interaction.reply({ content: `${interaction.user}, **Você não tem permissão para copiar essa ficha**`, ephemeral:true })
+      
+      const newCard = new Card(copyCard.toJSON());
       player.cards.push(newCard);
       interaction.reply({content:`"${newCard}" copiado ccom sucesso`});
       client.saveInstances();
