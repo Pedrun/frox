@@ -1,5 +1,6 @@
 # 1.1.0
-- [ ] Comparator sum
+- [X] Comparator sum
+- [X] Private roll
 - [ ] Name tag
 - [ ] Items
 - [ ] Inventory

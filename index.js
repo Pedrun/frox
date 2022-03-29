@@ -74,6 +74,43 @@ async function componentInteraction(interaction) {
   }
 }
 
+client.evaluateRoll = function(text, userId, guildId) {
+  let content = normalizeStr(text);
+  let prefix, rollCount, dice, rolls = [];
+  content = content.replace(rollCountRegex, (match, p, c) => {
+    prefix = !!p;
+    rollCount = parseInt(c || 1);
+    return "";
+  });
+
+  if (rollCount > 100 || rollCount < 1) return;
+
+  const instance = client.instances.greate(guildId);
+  const player = instance.greateUser(userId);
+  try {
+    for (let i=0; i<rollCount; i++) {
+      const parseResult = RogLang.parse(content, {player:player});
+      dice += parseResult.dice;
+      const { value, pretties } = parseResult;
+
+      if (typeof value === "boolean")
+        value = value?"Sucesso!":"Falha!";
+
+      rolls.push(`\` ${value.toLocaleString('pt-BR')} \` ⟵ ${pretties}`);
+    } 
+  } catch (e) {
+    console.error(e);
+  }
+  if (dice < 1 && !prefix) return;
+
+  let rollText = rolls.join("\n");
+  if (rollText.length > 2000)
+    rollText = rollText.slice(0, 1997) + "...";
+
+  console.log(rolls);
+  return rollText;
+}
+
 client.on('ready', async () => {
   console.log("Pronto!");
   
@@ -98,27 +135,15 @@ client.on("interactionCreate", (interaction) => {
     commandInteraction(interaction);
 });
 
+const rollCountRegex = /^(=)?(\d+#)?/;
 client.on("messageCreate", (message) => {
   if (message.author.bot) return;
-  let { content } = message;
-  const prefix = content.startsWith("=");
-
-  content = normalizeStr(content);
-  if (prefix) 
-    content = content.slice(1).trim()
-
-  const instance = client.instances.greate(message.guildId);
-  const player = instance.greateUser(message.author.id);
-  try {
-    let { value, pretties, dice } = RogLang.parse(content, {player:player});
-    if (dice < 1 && !prefix) return;
-
-    if (typeof value === "boolean")
-      value = value?"Sucesso":"Falha";
-    message.channel.send(`\` ${value.toLocaleString('pt-BR')} \` ⟵ ${pretties}`);
-  } catch (e) {
+  const roll = client.evaluateRoll(message.content, message.author.id, message.guildId);
+  if (roll.length > 0) {
+    console.log(`[${chalk.cyan("ROLL")}] (${message.author.tag}) ${roll} ${chalk.magenta(Date())}`);
+    message.reply(roll);
   }
-})
+});
 
 client.on("guildCreate", (guild) => {
   client.instances.set(guild.id, new Rog.Instance({ id: guild.id }));

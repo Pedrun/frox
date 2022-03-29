@@ -22,7 +22,7 @@ module.exports = {
     
     if (!player.card)
       return interaction.reply({ content: `${interaction.user}, **Não encontrei nenhuma ficha.** *Crie uma lista usando \` /fichas criar \`*`, ephemeral:true});
-    if (player.card.isPrivate && interaction.user.id !== member.user.id && !hasDMPermissions(interaction.member, instance.settings.DMrole)) {
+    if (player.card.isPrivate && interaction.user.id !== user && !hasDMPermissions(interaction.member, instance.settings.DMrole)) {
       return interaction.reply({ content: `${interaction.user}, **Você não tem permissão para ver essa ficha**`, ephemeral:true});
     }
 
