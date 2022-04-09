@@ -81,7 +81,7 @@ client.evaluateRoll = function(text, userId, guildId) {
     prefix = !!p;
     rollCount = parseInt(c || 1);
     return "";
-  });
+  }).trim();
 
   if (rollCount > 100 || rollCount < 1) return;
 
@@ -107,7 +107,6 @@ client.evaluateRoll = function(text, userId, guildId) {
   if (rollText.length > 2000)
     rollText = rollText.slice(0, 1997) + "...";
 
-  console.log(rolls);
   return rollText;
 }
 
