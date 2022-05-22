@@ -161,7 +161,6 @@ client.on("messageCreate", (message) => {
     prefix = 2;
   }
 
-  console.log(content);
   content = normalizeStr(content);
 
   try {

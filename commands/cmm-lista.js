@@ -1,4 +1,5 @@
 const { ContextMenuCommandBuilder } = require("@discordjs/builders");
+const { MessageActionRow, MessageButton } = require("discord.js");
 
 module.exports = {
   data: new ContextMenuCommandBuilder()
@@ -14,7 +15,15 @@ module.exports = {
     
     const message = interaction.targetMessage;
     const channel = await client.channels.fetch(listChannel);
-    channel.send({content:`“[${message.content}](${message.url})” — ${message.author}`, embeds:message.embeds});
+
+    const row = new MessageActionRow()
+      .addComponents(new MessageButton()
+        .setLabel("Ir para a mensagem")
+	.setURL(message.url)
+	.setStyle("LINK")
+      );
+
+    channel.send({content:`“${message.content}” — ${message.author}`, embeds:message.embeds, components:[row]});
 
     await interaction.reply({content:`"${message.content}" Adicionado à lista!`});
     const replyMessage = interaction.fetchReply();
