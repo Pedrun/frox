@@ -1,4 +1,4 @@
 node_modules
 emotes
 .env
-saves
+saves/*

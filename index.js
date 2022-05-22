@@ -1,10 +1,13 @@
+// Requerimentos
 const Discord = require("discord.js");
 const fs = require("fs");
 const chalk = require("chalk");
 const Rog = require("./rog");
-const RogLang = require("./parser/roglang_v1.js");
+const rogscript = require("./parser/parser.js");
 const { normalizeStr } = require("./util");
 
+
+// Declarações
 const { Intents } = Discord;
 const client = new Discord.Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
 const commandFiles = fs.readdirSync("./commands").filter(f => f.endsWith(".js"));
@@ -18,6 +21,7 @@ client.components = new Discord.Collection();
 client.instances = new Rog.InstanceHolder();
 Rog.client = client;
 
+// Arquivos
 for (const commandFile of commandFiles) {
   const command = require(`./commands/${commandFile}`);
   client.commands.set(command.data.name, command);
@@ -31,13 +35,55 @@ for (const saveFile of saveFiles) {
   client.instances.set(instance.id, instance);
 }
 
+
+// Funções
 client.saveInstances = async function() {
   client.instances.each((v,k) => {
-    fs.writeFile(`./saves/${k}.json`, JSON.stringify(v, null, '\t'), err => {
-      if (err) throw err;
-    });
+    fs.writeFileSync(`./saves/${k}.json`, JSON.stringify(v, null, '\t'));
   });
   console.log(`[${chalk.greenBright("SAVE")}] Todos os saves foram salvos em "./saves" ${new Date()}`);
+}
+
+const rollCountRegex = /^(=)?(\d+#)?/;
+client.evaluateRoll = function(text, userId, guildId) {
+  let content = normalizeStr(text);
+  let prefix, rollCount, dice, depth, rolls = [];
+  content = content.replace(rollCountRegex, (match, p, c) => {
+    prefix = !!p;
+    rollCount = parseInt(c || 1);
+    return "";
+  }).trim();
+
+  if (rollCount > 100 || rollCount < 1) return;
+
+  const instance = client.instances.greate(guildId);
+  const player = instance.greateUser(userId);
+  try {
+    for (let i=0; i<rollCount; i++) {
+      if (depth > 1000)
+        throw "Overload";
+      
+      const parseResult = RogLang.parse(content, {player:player});
+      dice += parseResult.dice;
+      depth += parseResult.depth;
+      const { value, pretties } = parseResult;
+      
+      if (typeof value === "boolean")
+        value = value?"Sucesso!":"Falha!";
+
+      rolls.push(`\` ${value.toLocaleString('pt-BR')} \` ⟵ ${pretties}`);
+    } 
+  } catch (e) {
+    console.error(e);
+    return "";
+  }
+  if (dice < 1 && !prefix) return;
+
+  let rollText = rolls.join("\n");
+  if (rollText.length > 2000)
+    rollText = rollText.slice(0, 1997) + "...";
+
+  return rollText;
 }
 
 async function commandInteraction(interaction) {
@@ -74,42 +120,8 @@ async function componentInteraction(interaction) {
   }
 }
 
-client.evaluateRoll = function(text, userId, guildId) {
-  let content = normalizeStr(text);
-  let prefix, rollCount, dice, rolls = [];
-  content = content.replace(rollCountRegex, (match, p, c) => {
-    prefix = !!p;
-    rollCount = parseInt(c || 1);
-    return "";
-  }).trim();
 
-  if (rollCount > 100 || rollCount < 1) return;
-
-  const instance = client.instances.greate(guildId);
-  const player = instance.greateUser(userId);
-  try {
-    for (let i=0; i<rollCount; i++) {
-      const parseResult = RogLang.parse(content, {player:player});
-      dice += parseResult.dice;
-      const { value, pretties } = parseResult;
-
-      if (typeof value === "boolean")
-        value = value?"Sucesso!":"Falha!";
-
-      rolls.push(`\` ${value.toLocaleString('pt-BR')} \` ⟵ ${pretties}`);
-    } 
-  } catch (e) {
-    console.error(e);
-  }
-  if (dice < 1 && !prefix) return;
-
-  let rollText = rolls.join("\n");
-  if (rollText.length > 2000)
-    rollText = rollText.slice(0, 1997) + "...";
-
-  return rollText;
-}
-
+// Eventos
 client.on('ready', async () => {
   console.log("Pronto!");
   
@@ -134,13 +146,43 @@ client.on("interactionCreate", (interaction) => {
     commandInteraction(interaction);
 });
 
-const rollCountRegex = /^(=)?(\d+#)?/;
 client.on("messageCreate", (message) => {
   if (message.author.bot) return;
-  const roll = client.evaluateRoll(message.content, message.author.id, message.guildId);
-  if (roll.length > 0) {
-    console.log(`[${chalk.cyan("ROLL")}] (${message.author.tag}) ${roll} ${chalk.magenta(Date())}`);
-    message.reply(roll);
+  const instance = client.instances.greate(message.guildId);
+  const player = instance.greateUser(message.author.id);
+  let content = message.content;
+  let prefix = 0;
+
+  if (content.startsWith("=")) {
+    content = content.slice(1);
+    prefix = 1;
+  } else if (content.startsWith("rs:multiline")) {
+    content = content.split(/rs:multiline\s+/)[1];
+    prefix = 2;
+  }
+
+  console.log(content);
+  content = normalizeStr(content);
+
+  try {
+    let roll;
+    if (prefix === 2) {
+      roll = rogscript.parseBlock(content, player.card.attributes);
+    } else {
+      roll = rogscript.parseLine(content, player.card.attributes);
+    }
+
+    if (roll.dice || prefix) {
+      let results = roll.results.reduce((a,b) => a + "\n" + b.text, "");
+      if (results.length > 2000) {
+        results = results.slice(0, 1997) + "...";
+      }
+      console.log(`[${chalk.cyan("ROLL")}] (${message.author.tag}) ${results} ${chalk.magenta(Date())}`);
+      player.card.setAttrBulk(roll.attributes);
+      message.reply(results);
+    }
+  } catch (e) {
+    //console.error(e);
   }
 });
 
@@ -161,5 +203,7 @@ client.on("guildDelete", (guild) => {
   console.log(`[${chalk.redBright("GUILD")}] "${guild}" deletada`);
 })
 
+
+// Login
 client.login();
 setInterval(client.saveInstances, 1800000);

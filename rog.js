@@ -130,7 +130,7 @@ class Player {
     return client.instances.get(this.guild);
   }
 
-  // Card-related methods
+  // Current Card getter
   get card() {
     return this.cards[this.cardIndex];
   }
@@ -139,20 +139,18 @@ class Player {
 class Card {
   constructor({
     name="",
-    playerId="",
-    guildId="",
     color="",
     attributes=[],
+    buffs=[],
     bars=[],
     isPrivate=false
   }) {
     this.name = name;
-    this.playerId = playerId;
-    this.guildId = guildId;
     this.color = color;
     this.attributes = new Collection(attributes);
 
-    this.bars = bars.map(b => new CardBar({...b, playerId:this.playerId, guildId:this.guildId}))
+    this.buffs = buffs.map(b => new CardBuff(b));
+    this.bars = bars.map(b => new CardBar(b));
 
     this.isPrivate = isPrivate;
   }
@@ -163,19 +161,30 @@ class Card {
   }
   getAttr(attr) {
     let cleanAttr = normalizeStr(attr.toUpperCase());
+    if (!this.hasAttr(cleanAttr)) return;
     return this.attributes.get(cleanAttr);
+  }
+  getAttrBulk() {
+    return this.attributes.map((v,k) => this.getAttr(k));
   }
   setAttr(attr, value) {
     let cleanAttr = normalizeStr(attr.toUpperCase());
-    let val = parseInt(value);
-
-    if (val == null) 
-      throw TypeError('"value" cannot be converted to number');
-    
     if (!this.hasAttr(cleanAttr))
       throw ReferenceError(`"${cleanAttr}" is not a defined attribute`);
     
+    let val = parseInt(value);
+    if (val == null || !isFinite(val)) return this;
+    
     this.attributes.set(cleanAttr, val);
+    return this;
+  }
+  setAttrBulk(attrMap) {
+    for (let [k, v] of attrMap) {
+      let cleanAttr = normalizeStr(k.toUpperCase());
+      if (this.hasAttr(cleanAttr))
+        this.setAttr(k, v);
+    }
+
     return this;
   }
   addAttr(attr, value) {
@@ -202,25 +211,51 @@ class Card {
   /**
    * @param {CardBar} bar 
    */
-  getBar(bar, barMax=6, fill="<:bar2:957638608490217502>", empty="<:barempty2:957638608557322270>") {
+  getBar(bar, barSize=6, fill="<:bar2:957638608490217502>", empty="<:barempty2:957638608557322270>") {
     let value = this.getAttr(bar.value);
     let max = this.getAttr(bar.max);
-    if (value == null || max == null) return "ATRIBUTO INVÁLIDO";
+    if (value == null || max == null) return "[ ATRIBUTO INVÁLIDO ]";
 
     const ratio = value/max;
     let barCount;
     if (ratio > 1 || isNaN(ratio))
-      barCount = barMax;
+      barCount = barSize;
     else if (ratio < 0)
       barCount = 0;
     else
-      barCount = Math.round(ratio*barMax);
+      barCount = Math.round(ratio*barSize);
 
-    // return `${value}/${max} (${Math.round(ratio * 100)}%)\n\`[${"█".repeat(barCount)}${" ".repeat(barMax-barCount)}]\``;
-    return `${value}/${max} (${Math.round(ratio * 100)}%)\n[${fill.repeat(barCount)}${empty.repeat(barMax-barCount)}]`;
+    return `${value}/${max} (${Math.round(ratio * 100)}%)\n[${fill.repeat(barCount)}${empty.repeat(barSize-barCount)}]`;
   }
 }
 Card.prototype.toJSON = toJSON;
+
+class Attribute {
+  constructor({
+    value=0,
+    dynamic=false
+  }) {
+    this.value = value;
+    this.dynamic = dynamic;
+  }
+}
+
+class AttrResponse {
+  constructor(
+    name="", base=0, buff=0,
+  ) {
+    this.name = name;
+    this.base = base;
+    this.buff = buff;
+    this.total = base + buff;
+  }
+  valueOf() {
+    return this.total;
+  }
+  toString() {
+    return this.base + (this.buff == 0)?"":`(+${this.buff})`;
+  }
+}
 
 class CardBar {
   constructor({
@@ -234,6 +269,25 @@ class CardBar {
   }
 }
 
+class CardBuff {
+  constructor({
+    name="",
+    duration=0,
+    rounds=0,
+    icon = "",
+    values=[],
+  }) {
+    this.name = name;
+    this.icon = icon;
+
+    this.duration = duration;
+    this.rounds = rounds;
+
+    this.values = new Collection(values);
+  }
+}
+CardBuff.prototype.toJSON = toJSON;
+
 function hasDMPermissions(member, DMrole) {
   return member.roles.cache.has(DMrole) || member.permissions.has(8n);
 }
@@ -246,7 +300,9 @@ const Rog = {
   InstanceSettings,
   Player,
   Card,
+  AttrResponse,
   CardBar,
+  CardBuff,
   hasDMPermissions,
   possibleAttr
 }

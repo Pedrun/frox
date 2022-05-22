@@ -417,7 +417,12 @@ Integer "integer"
   
 Attribute
   = attr:ValidAttribute &{ return player.card.hasAttr(attr) } {
-    return makeInteger(player.card.getAttr(attr));
+    const attribute = player.card.getAttr(attr);
+    const integer = makeInteger(attribute.valueOf());
+    integer.pretties = "[" + attribute.base;
+    if (attribute.buff != 0) integer.pretties += "**+" + attribute.buff + "**";
+    integer.pretties += "] " + attribute.name;
+    return integer;
   }
 
 ValidAttribute

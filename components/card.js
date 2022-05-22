@@ -19,18 +19,13 @@ module.exports = {
       return interaction.reply({ content: `${interaction.user}, **Você não tem permissão para ver essa ficha**`, ephemeral:true});
     }
 
-    const indexRange = [page*16, (page*16)+15];
-    let indexCount = 0;
-    const field = player.card.attributes.reduce(
-      (t,v,k) => {
-        return t + (
-          isInRange(indexCount++, ...indexRange)
-            ?`\n${k}: ${v.toLocaleString("pt-BR")}`
-            :""
-        )
-      },
-      ""
-    );
+    let field = "\n";
+    let index = 0;
+    for (let [k,v] of player.card.attributes) {
+      if (isInRange(index++, page*16, (page+1) * 16)) {
+        field += `${k}: ${v}\n`;
+      }
+    }
     
     const multiplePages = player.card.attributes.size > 16;
     const avatar = member.avatarURL() || member.user.avatarURL();
@@ -71,5 +66,5 @@ module.exports = {
 }
 
 function isInRange(number=0, min=0, max=0) {
-  return number >= min && number <= max;
+  return number >= min && number < max;
 }

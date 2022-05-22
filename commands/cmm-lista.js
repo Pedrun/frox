@@ -14,7 +14,7 @@ module.exports = {
     
     const message = interaction.targetMessage;
     const channel = await client.channels.fetch(listChannel);
-    channel.send({content:`“${message.content}” — ${message.author}`, embeds:message.embeds});
+    channel.send({content:`“[${message.content}](${message.url})” — ${message.author}`, embeds:message.embeds});
 
     await interaction.reply({content:`"${message.content}" Adicionado à lista!`});
     const replyMessage = interaction.fetchReply();

@@ -577,7 +577,12 @@ function peg$parse(input, options) {
       return makeInteger(text());
     };
   var peg$f21 = function(attr) {
-      return makeInteger(player.card.getAttr(attr));
+      const attribute = player.card.getAttr(attr);
+      const integer = makeInteger(attribute.valueOf());
+      integer.pretties = "[" + attribute.base;
+      if (attribute.buff == 0) integer.pretties += "**+" + attribute.buff + "**";
+      integer.pretties += "] " + attribute.name;
+      return integer;
     };
 
   var peg$currPos = 0;
