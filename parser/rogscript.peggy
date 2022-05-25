@@ -388,9 +388,8 @@ UnaryRight
   / Group
 
 Group
-  = "(" expr:LogicAND ")" {
+  = "(" _ expr:LogicOR _ ")" {
     expr.text = "(" + expr.text + ")";
-    console.log(exp)
     return expr;
   }
   / BasicRoll

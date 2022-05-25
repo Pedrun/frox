@@ -596,7 +596,6 @@ function peg$parse(input, options) {
     };
   var peg$f11 = function(expr) {
       expr.text = "(" + expr.text + ")";
-      console.log(exp)
       return expr;
     };
   var peg$f12 = function(left) {
@@ -1452,7 +1451,7 @@ function peg$parse(input, options) {
   }
 
   function peg$parseGroup() {
-    var s0, s1, s2, s3;
+    var s0, s1, s2, s3, s4, s5;
 
     s0 = peg$currPos;
     if (input.charCodeAt(peg$currPos) === 40) {
@@ -1463,18 +1462,20 @@ function peg$parse(input, options) {
       if (peg$silentFails === 0) { peg$fail(peg$e20); }
     }
     if (s1 !== peg$FAILED) {
-      s2 = peg$parseLogicAND();
-      if (s2 !== peg$FAILED) {
+      s2 = peg$parse_();
+      s3 = peg$parseLogicOR();
+      if (s3 !== peg$FAILED) {
+        s4 = peg$parse_();
         if (input.charCodeAt(peg$currPos) === 41) {
-          s3 = peg$c20;
+          s5 = peg$c20;
           peg$currPos++;
         } else {
-          s3 = peg$FAILED;
+          s5 = peg$FAILED;
           if (peg$silentFails === 0) { peg$fail(peg$e21); }
         }
-        if (s3 !== peg$FAILED) {
+        if (s5 !== peg$FAILED) {
           peg$savedPos = s0;
-          s0 = peg$f11(s2);
+          s0 = peg$f11(s3);
         } else {
           peg$currPos = s0;
           s0 = peg$FAILED;

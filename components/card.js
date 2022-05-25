@@ -23,7 +23,7 @@ module.exports = {
     let index = 0;
     for (let [k,v] of player.card.attributes) {
       if (isInRange(index++, page*16, (page+1) * 16)) {
-        field += `${k}: ${v}\n`;
+        field += `${k}: ${v.toLocaleString('pt-BR')}\n`;
       }
     }
     

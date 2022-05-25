@@ -44,54 +44,43 @@ client.saveInstances = async function() {
   console.log(`[${chalk.greenBright("SAVE")}] Todos os saves foram salvos em "./saves" ${new Date()}`);
 }
 
-const rollCountRegex = /^(=)?(\d+#)?/;
-client.evaluateRoll = function(text, userId, guildId) {
+client.evaluateRoll = function (text, player, rollMode=1) {
   let content = normalizeStr(text);
-  let prefix, rollCount, dice, depth, rolls = [];
-  content = content.replace(rollCountRegex, (match, p, c) => {
-    prefix = !!p;
-    rollCount = parseInt(c || 1);
-    return "";
-  }).trim();
 
-  if (rollCount > 100 || rollCount < 1) return;
-
-  const instance = client.instances.greate(guildId);
-  const player = instance.greateUser(userId);
   try {
-    for (let i=0; i<rollCount; i++) {
-      if (depth > 1000)
-        throw "Overload";
-      
-      const parseResult = RogLang.parse(content, {player:player});
-      dice += parseResult.dice;
-      depth += parseResult.depth;
-      const { value, pretties } = parseResult;
-      
-      if (typeof value === "boolean")
-        value = value?"Sucesso!":"Falha!";
+    let roll;
+    if (rollMode === 2) {
+      roll = rogscript.parseBlock(content, player.card.attributes);
+    } else {
+      roll = rogscript.parseLine(content, player.card.attributes);
+    }
 
-      rolls.push(`\` ${value.toLocaleString('pt-BR')} \` ⟵ ${pretties}`);
-    } 
+    if (roll.dice || rollMode) {
+      let results = roll.results.reduce((a,b) => a + "\n" + b.text, "");
+      if (results.length > 2000) {
+        results = results.slice(0, 1997) + "...";
+      }
+      
+      if (player.card) player.card.setAttrBulk(roll.attributes);
+
+      return results;
+    }
   } catch (e) {
-    console.error(e);
-    return "";
+    console.error(chalk.red(e));
+    return null;
   }
-  if (dice < 1 && !prefix) return;
-
-  let rollText = rolls.join("\n");
-  if (rollText.length > 2000)
-    rollText = rollText.slice(0, 1997) + "...";
-
-  return rollText;
 }
 
 async function commandInteraction(interaction) {
   const command = client.commands.get(interaction.commandName);
   if (!command) return;
 
-  console.log(`[${chalk.cyan(interaction.toString())}] (${interaction.user.tag}) ${chalk.magenta(interaction.createdAt)}`);
-  try {
+  if (interaction.isContextMenu())
+    console.log(`[${chalk.cyan(interaction.commandName)}] (${interaction.user.tag}) ${chalk.magenta(interaction.createdAt)}`);
+  else
+    console.log(`[${chalk.cyan(interaction.toString())}] (${interaction.user.tag}) ${chalk.magenta(interaction.createdAt)}`);
+
+ try {
     await command.execute(interaction, client);
   } catch(e) {
     console.log(chalk.red(e));
@@ -161,27 +150,11 @@ client.on("messageCreate", (message) => {
     prefix = 2;
   }
 
-  content = normalizeStr(content);
+  let result = client.evaluateRoll(content, player, prefix);
 
-  try {
-    let roll;
-    if (prefix === 2) {
-      roll = rogscript.parseBlock(content, player.card.attributes);
-    } else {
-      roll = rogscript.parseLine(content, player.card.attributes);
-    }
-
-    if (roll.dice || prefix) {
-      let results = roll.results.reduce((a,b) => a + "\n" + b.text, "");
-      if (results.length > 2000) {
-        results = results.slice(0, 1997) + "...";
-      }
-      console.log(`[${chalk.cyan("ROLL")}] (${message.author.tag}) ${results} ${chalk.magenta(Date())}`);
-      player.card.setAttrBulk(roll.attributes);
-      message.reply(results);
-    }
-  } catch (e) {
-    //console.error(e);
+  if (result?.length) {
+    message.reply(result);
+    console.log(`[${chalk.cyan("ROLL")}] (${message.author.tag}) ${chalk.magenta(Date())}${result}`);
   }
 });
 
