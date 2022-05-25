@@ -5,7 +5,7 @@ require("dotenv").config();
 const { CLIENTID, GUILDID, TOKEN } = process.env;
 
 const commands = [];
-const commandFiles = fs.readdirSync('./commands').filter(f => f.endsWith(".js.guild"));
+const commandFiles = fs.readdirSync('./commands').filter(f => f.endsWith(".guild.js"));
 
 for(const file of commandFiles) {
 	const command = require(`./commands/${file}`);
