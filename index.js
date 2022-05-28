@@ -4,7 +4,7 @@ const fs = require("fs");
 const chalk = require("chalk");
 const Rog = require("./rog");
 const rogscript = require("./parser/parser.js");
-const { normalizeStr } = require("./util");
+const { normalizeStr, ellipsis } = require("./util");
 
 
 // Declarações
@@ -41,7 +41,7 @@ client.saveInstances = async function() {
   client.instances.each((v,k) => {
     fs.writeFileSync(`./saves/${k}.json`, JSON.stringify(v, null, '\t'));
   });
-  console.log(`[${chalk.greenBright("SAVE")}] Todos os saves foram salvos em "./saves" ${new Date()}`);
+  console.log(`[${chalk.greenBright("SAVE")}] Todos os saves foram salvos em "./saves" ${chalk.magenta(Date())}`);
 }
 
 client.evaluateRoll = function (text, player, rollMode=1) {
@@ -50,16 +50,14 @@ client.evaluateRoll = function (text, player, rollMode=1) {
   try {
     let roll;
     if (rollMode === 2) {
-      roll = rogscript.parseBlock(content, player.card.attributes);
+      roll = rogscript.parseBlock(content, player.card?.attributes);
     } else {
-      roll = rogscript.parseLine(content, player.card.attributes);
+      roll = rogscript.parseLine(content, player.card?.attributes);
     }
 
     if (roll.dice || rollMode) {
       let results = roll.results.reduce((a,b) => a + "\n" + b.text, "");
-      if (results.length > 2000) {
-        results = results.slice(0, 1997) + "...";
-      }
+      results = ellipsis(results);
       
       if (player.card) player.card.setAttrBulk(roll.attributes);
 

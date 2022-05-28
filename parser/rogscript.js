@@ -207,7 +207,8 @@
     valuesArr.forEach(v => accumulator += v)
     const textSymbols = ['**-**', '0', '**+**'];
     const textArr = valuesArr.map(v => textSymbols[v+1]);
-    const text = '[' + textArr.join(', ') + '] ' + count + 'd';
+    const text = '[' + textArr.join(', ') + '] ' + count + 'df';
+    
     return {
       value: accumulator,
       values: valuesArr,
@@ -550,7 +551,6 @@ function peg$parse(input, options) {
         label = `**${label}** `;
       }
       output = `${label}\` ${output} \` ⟵ ${exp.text}`;
-
       return {
         expression: exp,
         text: output,

@@ -14,10 +14,13 @@ function parseLine(input="", attributes, variables) {
   repeat = Math.min(100, Math.max(repeat, 1));
 
   for (let i=0; i<repeat; i++) {
+    if (dice >= 1000) {
+      throw Error("Número de dados por linha excedeu o limite de 1000.");
+    }
     let currentResult = rogscript.parse(input, { attributes, variables });
-    dice += currentResult.dice;
+    dice      += currentResult.dice;
     attributes = currentResult.attributes;
-    variables = currentResult.variables;
+    variables  = currentResult.variables;
     results.push(currentResult);
   }
 
@@ -25,22 +28,28 @@ function parseLine(input="", attributes, variables) {
     results,
     attributes,
     variables,
-    dice
+    dice,
+    lineCount: repeat
   };
 }
 
 function parseBlock(input, attributes) {
   let results = [];
   let dice = 0;
+  let lineCount = 0;
   attributes = attributes ?? new Map();
   variables = new Map();
 
-  for (let line of input.split(/[\n\r]+/)) {
+  for (let line of input.trim().split(/[\n\r]+/)) {
+    if (lineCount >= 100) {
+      throw Error("Número de linhas excedeu o limite de 100.");
+    }
     line = line.trim();
     let currentLine = parseLine(line, attributes, variables);
-    dice += currentLine.dice;
+    lineCount += currentLine.lineCount;
+    dice      += currentLine.dice;
     attributes = currentLine.attributes;
-    variables = currentLine.variables;
+    variables  = currentLine.variables;
     results.push(...currentLine.results);
   }
 
