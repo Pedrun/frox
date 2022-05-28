@@ -52,5 +52,11 @@ module.exports = {
             sum += prob[i];
             if (r <= sum) return i;
         }
+    },
+
+    ellipsis(text, limit=2000) {
+        if (text.length > limit)
+            return text.slice(0, 1997) + "...";
+        return text;
     }
 }

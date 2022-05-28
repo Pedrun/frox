@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { Interaction } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -9,15 +10,19 @@ module.exports = {
       .setDescription('O dado que vai ser rolado')
       .setRequired(true)
     ),
+  /**
+   * 
+   * @param {Interaction} interaction 
+   */
   async execute(interaction, client) {
     const expressão = interaction.options.getString('expressão');
-    const instance = client.instances.greate(message.guildId);
-    const player = instance.greateUser(message.author.id);
-
+    const instance = client.instances.greate(interaction.guildId);
+    const player = instance.greateUser(interaction.user.id);
     const result = client.evaluateRoll(expressão, player);
     
-    if (result.length > 0)
+    if (result?.length)
       interaction.reply({ content: result, ephemeral: true });
-    interaction.reply({ content: `${interaction.user}, **Essa expressão é inválida**`, ephemeral: true });
+    else
+      interaction.reply({ content: `${interaction.user}, **Essa expressão é inválida**`, ephemeral: true });
   }
 }
