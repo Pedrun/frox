@@ -1,0 +1,35 @@
+{
+	"id": "668657459929284624",
+	"users": [
+		[
+			"525659684062101504",
+			{
+				"id": "525659684062101504",
+				"guildId": "668657459929284624",
+				"nameSuffix": "",
+				"suffixSeparator": "[",
+				"cardIndex": 0,
+				"cards": [
+					{
+						"name": "a",
+						"color": "",
+						"attributes": [
+							[
+								"AAA",
+								3
+							]
+						],
+						"buffs": [],
+						"bars": [],
+						"isPrivate": false
+					}
+				]
+			}
+		]
+	],
+	"settings": {
+		"listChannel": "954791531800297545",
+		"DMrole": ""
+	},
+	"skills": []
+}

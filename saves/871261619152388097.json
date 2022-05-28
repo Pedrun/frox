@@ -1,0 +1,135 @@
+{
+	"id": "871261619152388097",
+	"users": [
+		[
+			"525659684062101504",
+			{
+				"id": "525659684062101504",
+				"guildId": "871261619152388097",
+				"nameSuffix": "",
+				"suffixSeparator": "[",
+				"cardIndex": 0,
+				"cards": [
+					{
+						"name": "Jussandir",
+						"color": "",
+						"attributes": [
+							[
+								"PV",
+								17
+							],
+							[
+								"MPV",
+								17
+							],
+							[
+								"PE",
+								14
+							],
+							[
+								"MPE",
+								14
+							],
+							[
+								"NVL",
+								3
+							],
+							[
+								"E",
+								3
+							],
+							[
+								"F",
+								2
+							],
+							[
+								"CT",
+								3
+							],
+							[
+								"A",
+								2
+							],
+							[
+								"D",
+								3
+							],
+							[
+								"C",
+								3
+							],
+							[
+								"V",
+								2
+							],
+							[
+								"S",
+								2
+							],
+							[
+								"I",
+								2
+							],
+							[
+								"PS",
+								7
+							],
+							[
+								"MPS",
+								7
+							],
+							[
+								"MORA",
+								1579900
+							]
+						],
+						"buffs": [],
+						"bars": [
+							{
+								"name": "Pontos de Vida",
+								"value": "PV",
+								"max": "MPV"
+							},
+							{
+								"name": "Pontos Elementais",
+								"value": "PE",
+								"max": "MPE"
+							},
+							{
+								"name": "Pontos de Sanidade",
+								"value": "PS",
+								"max": "MPS"
+							}
+						],
+						"isPrivate": false
+					}
+				]
+			}
+		],
+		[
+			"531915281199661059",
+			{
+				"id": "531915281199661059",
+				"guildId": "871261619152388097",
+				"nameSuffix": "",
+				"suffixSeparator": "[",
+				"cardIndex": 0,
+				"cards": [
+					{
+						"name": "sahashi",
+						"color": "",
+						"attributes": [],
+						"buffs": [],
+						"bars": [],
+						"isPrivate": false
+					}
+				]
+			}
+		]
+	],
+	"settings": {
+		"listChannel": "978032218003886151",
+		"DMrole": ""
+	},
+	"skills": []
+}
