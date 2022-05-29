@@ -33,12 +33,12 @@ function parseLine(input="", attributes, variables) {
   };
 }
 
-function parseBlock(input, attributes) {
+function parseBlock(input, attributes, variables) {
   let results = [];
   let dice = 0;
   let lineCount = 0;
   attributes = attributes ?? new Map();
-  variables = new Map();
+  variables = variables ?? new Map();
 
   for (let line of input.trim().split(/[\n\r]+/)) {
     if (lineCount >= 100) {

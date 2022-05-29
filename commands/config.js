@@ -1,6 +1,5 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageActionRow, MessageButton } = require("discord.js");
-const { Instance } = require("../rog");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -12,7 +11,7 @@ module.exports = {
       .addChannelOption(option =>
         option.setName("canal")
         .setDescription("Canal que será definido como a lista (deixe em branco para desativar a lista)")
-        .addChannelType(0) //GuildText
+        .addChannelTypes(0)
       )
     )
     .addSubcommand(subCommand => 

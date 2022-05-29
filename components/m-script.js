@@ -2,7 +2,7 @@ const { ModalSubmitInteraction } = require("discord.js");
 const { normalizeStr } = require("../util.js");
 
 module.exports = {
-  name: "script",
+  name: "m-script",
   /**
    * @param {ModalSubmitInteraction} interaction 
    */
@@ -29,7 +29,9 @@ module.exports = {
         ephemeral: true
       })
     }
+
     instance.scripts.set(scriptName, scriptContent);
+    instance.scripts.sort((v1,v2,k1,k2) => k1.localeCompare(k2));
     client.saveInstances();
     interaction.reply({ content: `O script **"${scriptName}"** foi atualizado! Agora, para executá-lo é só utilizar \` /s script:${scriptName} \`` });
   }

@@ -56,7 +56,7 @@ module.exports = {
 
     ellipsis(text, limit=2000) {
         if (text.length > limit)
-            return text.slice(0, 1997) + "...";
+            return text.slice(0, limit-3) + "...";
         return text;
     }
 }

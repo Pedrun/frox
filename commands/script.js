@@ -48,15 +48,15 @@ module.exports = {
       case 'editar': {  // /script editar nome:String
         const scriptName = normalizeStr(interaction.options.getString("nome")).trim().toLowerCase();
         if (!scriptRegex.test(scriptName) || !scriptName.length) {
-          interaction.reply({
-            content:`${interaction.user}, Esse não é um nome válido para um scrpit. Um nome válido é composto por apenas **letras de A-Z, -, _, :, ou espaços** e podem ter no máximo **16** caracteres.`,
+          return interaction.reply({
+            content:`${interaction.user}, Esse não é um nome válido para um script. Um nome válido é composto por apenas **letras de A-Z, números, -, _, :, ou espaços** e podem ter no máximo **32** caracteres.`,
             ephemeral:true
           });
         }
         const scriptContent = instance.scripts.get(scriptName) || "";
 
         const modal = new Modal()
-          .setCustomId(`script:${scriptName}`)
+          .setCustomId(`m-script:${scriptName}`)
           .setTitle(`Editar Script - "${scriptName}"`);
         
         const action = new MessageActionRow()
@@ -72,8 +72,8 @@ module.exports = {
         
         modal.addComponents(action);
         interaction.showModal(modal);
-        break;
       }
+      break;
       case 'lista': { // /script editar lista
         let field = "*~ Esse servidor não possui nenhum script ~\n  Use ` /script editar ` para criar um*";
         const scriptList = Array.from(instance.scripts.keys());
@@ -96,8 +96,8 @@ module.exports = {
           .setFooter({ text: `versão ${version}`, iconURL: avatar });
 
         interaction.reply({embeds:[embed]});
-        break;
       }
+      break;
       case 'ver': { // /script ver script:String
         const scriptName = normalizeStr(interaction.options.getString("script")).trim().toLowerCase();
         const scriptContent = instance.scripts.get(scriptName);
@@ -125,10 +125,10 @@ module.exports = {
           .setFooter({ text: `versão ${version}`, iconURL: avatar });
 
         interaction.reply({embeds:[embed]});
-        break;
       }
+      break;
     }
   }
 }
 
-const scriptRegex = /^[a-z-_: ]{1,16}$/;
+const scriptRegex = /^[0-9a-z-_: ]{1,32}$/;

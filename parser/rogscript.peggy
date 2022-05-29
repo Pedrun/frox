@@ -306,23 +306,28 @@
 */
 
 Start
-  = exp:Assingment _ label:(";" @$.*)? {
+  = exp:Assingment _ label:(";" $.*)? {
     let output = "";
     if (exp.boolean) {
       output = exp.value ? "**Sucesso!**" : "**Falha!**";
     } else  {
       output = exp.value.toLocaleString("pt-BR");
     }
-    label = label?.trim() ?? "";
-    if (label.length) {
-      label = `**${label}** `;
+
+    let cutLabel = "";
+    if (label?.length) {
+      cutLabel = label[1]?.trim();
+      if (cutLabel.length) {
+        cutLabel = `**${cutLabel}** `;
+      }
     }
-    output = `${label}\` ${output} \` ⟵ ${exp.text}`;
+
+    output = `${cutLabel}\` ${output} \` ⟵ ${exp.text}`;
     return {
       expression: exp,
       text: output,
       dice: exp.dice,
-      labeled: !!label,
+      labeled: !!label?.length,
       attributes: attributes,
       variables: variables
     }
@@ -445,7 +450,7 @@ Variable
   = k:VariableLiteral &{ return variables.has(k) } {
     const variable = variables.get(k);
     let integer = makeInteger(variable);
-    integer.text = "[" + variable + "] " + k;
+    //integer.text = "[" + variable + "] " + k;
     return integer;
   }
 VariableLiteral
@@ -455,7 +460,7 @@ Attribute
   = k:AttributeLiteral &{ return attributes.has(k) } {
     const attribute = attributes.get(k);
     const integer = makeInteger(attribute);
-    integer.text = "[" + attribute + "] " + k;
+    //integer.text = "[" + attribute + "] " + k;
     return integer;
   }
 AttributeLiteral

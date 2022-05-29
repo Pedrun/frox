@@ -131,5 +131,22 @@
 		"listChannel": "978032218003886151",
 		"DMrole": ""
 	},
-	"scripts": []
+	"scripts": [
+		[
+			"cemiterio de ferro",
+			"PE := PE - 3\nd12 + E + 2*D ; Ataque:\nd8 + E + D ; Dano:"
+		],
+		[
+			"cristais ataque",
+			"PE := PE - 1\n3d12 + E + D ; Ataque"
+		],
+		[
+			"cristais dano",
+			"$D := $ARGS * 2\n$Dd4 + (E * $ARGS) ; Dano:"
+		],
+		[
+			"pilar",
+			"PE := PE - 1 ; PE Atual:\nd12 + E + D ; Ataque:\nd4 + E ; Dano:"
+		]
+	]
 }

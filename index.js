@@ -10,18 +10,24 @@ const { normalizeStr, ellipsis } = require("./util");
 // Declarações
 const { Intents } = Discord;
 const client = new Discord.Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
+const autocompleteFiles = fs.readdirSync("./autocomplete").filter(f => f.endsWith(".js"));
 const commandFiles = fs.readdirSync("./commands").filter(f => f.endsWith(".js"));
 const componentFiles = fs.readdirSync("./components").filter(f => f.endsWith(".js"));
 const saveFiles = fs.readdirSync("./saves").filter(f => f.endsWith(".json"));
 
 require("dotenv").config();
 client.token = process.env.TOKEN;
+client.autocomplete = new Discord.Collection();
 client.commands = new Discord.Collection();
 client.components = new Discord.Collection();
 client.instances = new Rog.InstanceManager();
 Rog.client = client;
 
 // Arquivos
+for (const autocompleteFile of autocompleteFiles) {
+  const autocomplete = require(`./autocomplete/${autocompleteFile}`);
+  client.autocomplete.set(autocomplete.name, autocomplete);
+}
 for (const commandFile of commandFiles) {
   const command = require(`./commands/${commandFile}`);
   client.commands.set(command.data.name, command);
@@ -44,19 +50,19 @@ client.saveInstances = async function() {
   console.log(`[${chalk.greenBright("SAVE")}] Todos os saves foram salvos em "./saves" ${chalk.magenta(Date())}`);
 }
 
-client.evaluateRoll = function (text, player, rollMode=1) {
+client.evaluateRoll = function (text, player, rollMode=1, variables) {
   let content = normalizeStr(text);
+  let roll;
 
   try {
-    let roll;
     if (rollMode === 2) {
-      roll = rogscript.parseBlock(content, player.card?.attributes);
+      roll = rogscript.parseBlock(content, player.card?.attributes, variables);
     } else {
-      roll = rogscript.parseLine(content, player.card?.attributes);
+      roll = rogscript.parseLine(content, player.card?.attributes, variables);
     }
 
     if (roll.dice || rollMode) {
-      let results = roll.results.reduce((a,b) => a + "\n" + b.text, "");
+      let results = roll.results.reduce((a,b) => `${a}${b.text}\n`, "");
       results = ellipsis(results);
       
       if (player.card) player.card.setAttrBulk(roll.attributes);
@@ -64,8 +70,19 @@ client.evaluateRoll = function (text, player, rollMode=1) {
       return results;
     }
   } catch (e) {
-    console.error(chalk.red(e));
+    // console.error(chalk.red(e));
     return null;
+  }
+}
+
+async function autocompleteInteraction(interaction) {
+  const autocomplete = client.autocomplete.get(interaction.commandName);
+  if (!autocomplete) return;
+
+  try {
+    await autocomplete.execute(interaction, client);
+  } catch(e) {
+    console.log(chalk.red(e));
   }
 }
 
@@ -126,10 +143,11 @@ client.on('ready', async () => {
 });
 
 client.on("interactionCreate", (interaction) => {
-  // console.log(interaction);
-  if (interaction.isMessageComponent() || interaction.isModalSubmit())
+  if (interaction.isAutocomplete())
+    autocompleteInteraction(interaction);
+  else if (interaction.isMessageComponent() || interaction.isModalSubmit())
     componentInteraction(interaction);
-  if (interaction.isCommand() || interaction.isContextMenu())
+  else if (interaction.isCommand() || interaction.isContextMenu())
     commandInteraction(interaction);
 });
 

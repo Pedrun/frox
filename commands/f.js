@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton, CommandInteraction } = require('discord.js');
 const { hasDMPermissions } = require('../rog.js');
 const { version } = require("../package.json");
+const { ellipsis } = require('../util.js');
 
 module.exports = {
   data: new SlashCommandBuilder()

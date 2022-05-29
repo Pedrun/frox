@@ -1,6 +1,7 @@
 const { MessageEmbed, MessageActionRow, MessageButton, MessageComponentInteraction } = require('discord.js');
 const { hasDMPermissions } = require('../rog.js');
 const { version } = require("../package.json");
+const { ellipsis } = require('../util.js');
 module.exports = {
   name:"card",
   /**
