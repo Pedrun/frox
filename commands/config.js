@@ -17,7 +17,7 @@ module.exports = {
     )
     .addSubcommand(subCommand => 
       subCommand.setName("reset")
-      .setDescription("Reseta todas as informações refetentes a este servidor")
+      .setDescription("Limpa todas as informações refetentes a este servidor")
     )
     .addSubcommand(subCommand => 
       subCommand.setName("mestre")
@@ -51,7 +51,7 @@ module.exports = {
           .setStyle("DANGER")
         )
         interaction.reply({
-          content: "Tem certeza? Essa ação **excuirá todas as fichas, atributos, configurações e etc. deste servidor.**",
+          content: "Tem certeza? Essa ação **excuirá todas as fichas, atributos, scripts e configurações deste servidor.**",
           components: [row]
         });
         break;

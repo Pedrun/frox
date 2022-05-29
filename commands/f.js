@@ -34,6 +34,7 @@ module.exports = {
         field += `${k}: ${v.toLocaleString('pt-BR')}\n`;
       }
     }
+    field = ellipsis(field, 1000);
     
     const multiplePages = player.card.attributes.size > 16;
     const avatar = member.avatarURL() || member.user.avatarURL();

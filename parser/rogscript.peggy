@@ -429,7 +429,7 @@ BasicRollConfiguration
   }
 
 KeepDropConfiguration
-  = operator:("kh"/"kl"/"k"/"dh"/"dl"/"d") value:Number {
+  = operator:("kh"/"kl"/"k"/"dh"/"dl"/"d"/"c") value:Number {
     return {
       operator: operator,
       value: value.value

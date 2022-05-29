@@ -17,7 +17,7 @@ function toJSON() {
 
 const possibleAttr = /^[A-Z_]{1,32}$/;
 
-class InstanceHolder extends Collection {
+class InstanceManager extends Collection {
   greate(key) {
     if (this.has(key))
       return this.get(key);
@@ -32,14 +32,14 @@ class Instance {
     id="",
     users=[],
     settings={},
-    skills=[]
+    scripts=[]
   }) {
     this.id = id;
     this.users = new Collection(users)
       .mapValues(v => new Player({...v, guildId:this.id}));
 
     this.settings = new InstanceSettings(settings);
-    this.skills = new Collection(skills);
+    this.scripts = new Collection(scripts);
   }
 
   get guild() {
@@ -295,7 +295,7 @@ function hasDMPermissions(member, DMrole) {
 // Export
 const Rog = {
   client:{},
-  InstanceHolder,
+  InstanceManager,
   Instance,
   InstanceSettings,
   Player,

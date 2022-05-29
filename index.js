@@ -18,7 +18,7 @@ require("dotenv").config();
 client.token = process.env.TOKEN;
 client.commands = new Discord.Collection();
 client.components = new Discord.Collection();
-client.instances = new Rog.InstanceHolder();
+client.instances = new Rog.InstanceManager();
 Rog.client = client;
 
 // Arquivos
@@ -126,8 +126,8 @@ client.on('ready', async () => {
 });
 
 client.on("interactionCreate", (interaction) => {
-  //console.log(interaction);
-  if (interaction.isMessageComponent())
+  // console.log(interaction);
+  if (interaction.isMessageComponent() || interaction.isModalSubmit())
     componentInteraction(interaction);
   if (interaction.isCommand() || interaction.isContextMenu())
     commandInteraction(interaction);

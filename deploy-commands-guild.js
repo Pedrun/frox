@@ -18,5 +18,5 @@ const rest = new REST({ version: '9' }).setToken(TOKEN);
 // 	.then(() => console.log('Successfully registered application commands.'))
 // 	.catch(console.error);
 rest.put(Routes.applicationGuildCommands(CLIENTID, GUILDID), { body: commands })
-	.then(() => console.log('Successfully registered application commands.'))
+	.then(() => console.log('Successfully registered application guild commands.'))
 	.catch(console.error);
