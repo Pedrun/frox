@@ -59,6 +59,10 @@
 		[
 			"genshin",
 			"$CRIT := d100 <= 50 ; Critico:\n3259 * 322% * (1 + $CRIT*200%) ; Dano:"
+		],
+		[
+			"cu",
+			"d20\nd100\ndAAA\nd12 + AAA"
 		]
 	]
 }

@@ -131,4 +131,4 @@ module.exports = {
   }
 }
 
-const scriptRegex = /^[a-z-_: ]{0,16}$/;
+const scriptRegex = /^[a-z-_: ]{1,16}$/;
