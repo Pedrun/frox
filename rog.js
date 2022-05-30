@@ -122,7 +122,7 @@ class Player {
 
       await member.setNickname(username + this.suffixSeparator + newTag);
     } catch (e) {
-      console.log(chalk.red(e));
+      // console.log(chalk.red(e));
     }
   }
   
