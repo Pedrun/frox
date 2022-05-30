@@ -450,7 +450,7 @@ Variable
   = k:VariableLiteral &{ return variables.has(k) } {
     const variable = variables.get(k);
     let integer = makeInteger(variable);
-    //integer.text = "[" + variable + "] " + k;
+    // integer.text = "[" + variable + "] " + k;
     return integer;
   }
 VariableLiteral

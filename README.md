@@ -2,15 +2,16 @@
 # Upcoming Features
 ## 1.2.0
 - [X] RogScript
-- [ ] Scripts
+- [X] Scripts
 - [X] Private roll
-- [ ] Name tag
+- [X] Name tag
 
 ## 1.3.0
+- [ ] Batalha
 - [ ] Alarm
 - [ ] Items
 - [ ] Inventory
 - [ ] Buff
 
 ## 1.4.0
-- [ ] RosScript Functions
+- [ ] RogScript Functions

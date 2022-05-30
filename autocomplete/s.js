@@ -12,7 +12,7 @@ module.exports = {
     const begin = normalizeStr(interaction.options.getString("script")).toLowerCase();
     let response = [];
     for (let scriptName of instance.scripts.keys()) {
-      if (scriptName.startsWith(begin))
+      if (scriptName.includes(begin))
         response.push({ name:`⤷ ${scriptName}`, value:scriptName });
     }
     interaction.respond(response);

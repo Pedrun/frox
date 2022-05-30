@@ -65,7 +65,10 @@ client.evaluateRoll = function (text, player, rollMode=1, variables) {
       let results = roll.results.reduce((a,b) => `${a}${b.text}\n`, "");
       results = ellipsis(results);
       
-      if (player.card) player.card.setAttrBulk(roll.attributes);
+      if (player.card) {
+        player.card.setAttrBulk(roll.attributes);
+        player.updateSuffix();
+      }
 
       return results;
     }
@@ -79,6 +82,7 @@ async function autocompleteInteraction(interaction) {
   const autocomplete = client.autocomplete.get(interaction.commandName);
   if (!autocomplete) return;
 
+  //console.log(`[${chalk.cyan("Auto " + interaction.commandName)}] (${interaction.user.tag}) ${chalk.magenta(interaction.createdAt)}`);
   try {
     await autocomplete.execute(interaction, client);
   } catch(e) {
@@ -170,7 +174,7 @@ client.on("messageCreate", (message) => {
 
   if (result?.length) {
     message.reply(result);
-    console.log(`[${chalk.cyan("ROLL")}] (${message.author.tag}) ${chalk.magenta(Date())}${result}`);
+    console.log(`[${chalk.cyan("ROLL")}] (${message.author.tag}) ${chalk.magenta(Date())}\n${result.trim()}`);
   }
 });
 

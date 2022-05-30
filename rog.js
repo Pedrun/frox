@@ -1,4 +1,5 @@
 const { Collection } = require("@discordjs/collection");
+const chalk = require("chalk");
 const { normalizeStr } = require("./util");
 
 function toJSON() {
@@ -78,12 +79,13 @@ class InstanceSettings {
   }
 }
 
+const tagRegex = /\{([A-Z_]+)\}/g;
 class Player {
   constructor({
     id="",
     guildId="",
     nameSuffix="",
-    suffixSeparator="[",
+    suffixSeparator="",
     cardIndex=0,
     cards=[]
   }) {
@@ -97,37 +99,36 @@ class Player {
   }
 
   // Nickname-suffix-related methods
+  setSuffix(separator="", suffix="") {
+    this.suffixSeparator = separator;
+    this.nameSuffix = suffix;
+    return this;
+  }
   async updateSuffix() {
-    if (this.nameSuffix.length < 1) return;
-
-    const guild = await this.instance.guild;
-    if (!guild) return;
-
-    const member = await guild.members.fetch(this.id);
-    if (!member) return;
-
-    let username = member.displayName;
-    username = username.split(this.suffixSeparator)[0];
-
-    let newTag = this.nameSuffix.replace(/\{([A-Z_]+)\}/g, (match, attr) => {
-      if (this.card.hasAttr(attr)) {
-        return this.card.getAttr(attr);
-      }
+    if (!this.nameSuffix.length || !this.suffixSeparator.length)
+      return;
+    let newTag = this.nameSuffix.replace(tagRegex, (match, group) => {
+      let attr = group.toUpperCase();
+      if (this.card.hasAttr(attr))
+        return this.card.getAttr(group.toUpperCase())
       return match;
     });
+    
+    try {
+      const guild = await Rog.client.guilds.fetch(this.guildId);
+      const member = await guild.members.fetch(this.id);
+      let username = member.displayName.split(this.suffixSeparator)[0];
+      username = username.slice(0, 32-(newTag.length + this.suffixSeparator.length));
 
-    username = username.slice(0,32-newTag.length);
-    let newUsername = username + newTag;
-    try { 
-      member.setNickname(newUsername);
-    } catch (err) {
-      // console.log(err)
+      await member.setNickname(username + this.suffixSeparator + newTag);
+    } catch (e) {
+      console.log(chalk.red(e));
     }
   }
   
   // Instance getter
   get instance() {
-    return client.instances.get(this.guild);
+    return Rog.client.instances.get(this.guild);
   }
 
   // Current Card getter
@@ -167,7 +168,7 @@ class Card {
   getAttrBulk() {
     return this.attributes.map((v,k) => this.getAttr(k));
   }
-  setAttr(attr, value) {
+  setAttr(attr, value, autoRename=true) {
     let cleanAttr = normalizeStr(attr.toUpperCase());
     if (!this.hasAttr(cleanAttr))
       throw ReferenceError(`"${cleanAttr}" is not a defined attribute`);
@@ -226,6 +227,9 @@ class Card {
       barCount = Math.round(ratio*barSize);
 
     return `${value}/${max} (${Math.round(ratio * 100)}%)\n[${fill.repeat(barCount)}${empty.repeat(barSize-barCount)}]`;
+  }
+  toString() {
+    return this.name;
   }
 }
 Card.prototype.toJSON = toJSON;

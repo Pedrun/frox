@@ -6,7 +6,7 @@
 			{
 				"id": "525659684062101504",
 				"guildId": "668657459929284624",
-				"nameSuffix": "",
+				"nameSuffix": "PV:{PV} PE:{PE}]",
 				"suffixSeparator": "[",
 				"cardIndex": 1,
 				"cards": [
@@ -122,6 +122,111 @@
 					}
 				]
 			}
+		],
+		[
+			"793346325307588608",
+			{
+				"id": "793346325307588608",
+				"guildId": "668657459929284624",
+				"nameSuffix": "PV:{PV} PE:{PE}]",
+				"suffixSeparator": "[",
+				"cardIndex": 0,
+				"cards": [
+					{
+						"name": "Jussandir",
+						"color": "",
+						"attributes": [
+							[
+								"PV",
+								17
+							],
+							[
+								"MPV",
+								17
+							],
+							[
+								"PE",
+								13
+							],
+							[
+								"MPE",
+								14
+							],
+							[
+								"NVL",
+								3
+							],
+							[
+								"E",
+								3
+							],
+							[
+								"F",
+								2
+							],
+							[
+								"CT",
+								3
+							],
+							[
+								"A",
+								2
+							],
+							[
+								"D",
+								3
+							],
+							[
+								"C",
+								3
+							],
+							[
+								"V",
+								2
+							],
+							[
+								"S",
+								2
+							],
+							[
+								"I",
+								2
+							],
+							[
+								"PS",
+								7
+							],
+							[
+								"MPS",
+								7
+							],
+							[
+								"MORA",
+								1579900
+							]
+						],
+						"buffs": [],
+						"bars": [
+							{
+								"name": "Pontos de Vida",
+								"value": "PV",
+								"max": "MPV"
+							},
+							{
+								"name": "Pontos Elementais",
+								"value": "PE",
+								"max": "MPE"
+							},
+							{
+								"name": "Pontos de Sanidade",
+								"value": "PS",
+								"max": "MPS"
+							}
+						],
+						"isPrivate": false
+					}
+				]
+			}
 		]
 	],
 	"settings": {
@@ -140,10 +245,6 @@
 		[
 			"cu",
 			"d20\nd100\ndAAA\nd12 + AAA"
-		],
-		[
-			"aar",
-			"$ARGSd20"
 		],
 		[
 			"pilar",

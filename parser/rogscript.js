@@ -633,7 +633,7 @@ function peg$parse(input, options) {
   var peg$f19 = function(k) {
       const variable = variables.get(k);
       let integer = makeInteger(variable);
-      //integer.text = "[" + variable + "] " + k;
+      // integer.text = "[" + variable + "] " + k;
       return integer;
     };
   var peg$f20 = function(k) { return attributes.has(k) };
