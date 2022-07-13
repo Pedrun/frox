@@ -13,7 +13,7 @@ const client = new Discord.Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAG
 const autocompleteFiles = fs.readdirSync("./autocomplete").filter(f => f.endsWith(".js"));
 const commandFiles = fs.readdirSync("./commands").filter(f => f.endsWith(".js"));
 const componentFiles = fs.readdirSync("./components").filter(f => f.endsWith(".js"));
-const saveFiles = fs.readdirSync("./saves").filter(f => f.endsWith(".json"));
+const saveFiles = []; //fs.readdirSync("./saves").filter(f => f.endsWith(".json"));
 
 require("dotenv").config();
 client.token = process.env.TOKEN;
