@@ -5,15 +5,27 @@ const chalk = require("chalk");
 const Rog = require("./rog");
 const rogscript = require("./parser/parser.js");
 const { normalizeStr, ellipsis } = require("./util");
-
+const { time } = require("console");
 
 // Declarações
 const { Intents } = Discord;
-const client = new Discord.Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
-const autocompleteFiles = fs.readdirSync("./autocomplete").filter(f => f.endsWith(".js"));
-const commandFiles = fs.readdirSync("./commands").filter(f => f.endsWith(".js"));
-const componentFiles = fs.readdirSync("./components").filter(f => f.endsWith(".js"));
-const saveFiles = []; //fs.readdirSync("./saves").filter(f => f.endsWith(".json"));
+const client = new Discord.Client({
+  intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_MESSAGES,
+  ],
+});
+const autocompleteFiles = fs
+  .readdirSync("./autocomplete")
+  .filter((f) => f.endsWith(".js"));
+const commandFiles = fs
+  .readdirSync("./commands")
+  .filter((f) => f.endsWith(".js"));
+const componentFiles = fs
+  .readdirSync("./components")
+  .filter((f) => f.endsWith(".js"));
+const saveFiles = fs.readdirSync("./saves").filter((f) => f.endsWith(".json"));
 
 require("dotenv").config();
 client.token = process.env.TOKEN;
@@ -21,6 +33,7 @@ client.autocomplete = new Discord.Collection();
 client.commands = new Discord.Collection();
 client.components = new Discord.Collection();
 client.instances = new Rog.InstanceManager();
+client.alarms = new Discord.Collection();
 Rog.client = client;
 
 // Arquivos
@@ -41,16 +54,19 @@ for (const saveFile of saveFiles) {
   client.instances.set(instance.id, instance);
 }
 
-
 // Funções
-client.saveInstances = async function() {
-  client.instances.each((v,k) => {
-    fs.writeFileSync(`./saves/${k}.json`, JSON.stringify(v, null, '\t'));
+client.saveInstances = async function () {
+  client.instances.each((v, k) => {
+    fs.writeFileSync(`./saves/${k}.json`, JSON.stringify(v, null, "\t"));
   });
-  console.log(`[${chalk.greenBright("SAVE")}] Todos os saves foram salvos em "./saves" ${chalk.magenta(Date())}`);
-}
+  console.log(
+    `[${chalk.greenBright(
+      "SAVE"
+    )}] Todos os saves foram salvos em "./saves" ${chalk.magenta(Date())}`
+  );
+};
 
-client.evaluateRoll = function (text, player, rollMode=1, variables) {
+client.evaluateRoll = function (text, player, rollMode = 1, variables) {
   let content = normalizeStr(text);
   let roll;
 
@@ -62,9 +78,9 @@ client.evaluateRoll = function (text, player, rollMode=1, variables) {
     }
 
     if (roll.dice || rollMode) {
-      let results = roll.results.reduce((a,b) => `${a}${b.text}\n`, "");
+      let results = roll.results.reduce((a, b) => `${a}${b.text}\n`, "");
       results = ellipsis(results);
-      
+
       if (player.card) {
         player.card.setAttrBulk(roll.attributes);
         player.updateSuffix();
@@ -76,7 +92,7 @@ client.evaluateRoll = function (text, player, rollMode=1, variables) {
     // console.error(chalk.red(e));
     return null;
   }
-}
+};
 
 async function autocompleteInteraction(interaction) {
   const autocomplete = client.autocomplete.get(interaction.commandName);
@@ -85,7 +101,7 @@ async function autocompleteInteraction(interaction) {
   //console.log(`[${chalk.cyan("Auto " + interaction.commandName)}] (${interaction.user.tag}) ${chalk.magenta(interaction.createdAt)}`);
   try {
     await autocomplete.execute(interaction, client);
-  } catch(e) {
+  } catch (e) {
     console.log(chalk.red(e));
   }
 }
@@ -95,60 +111,121 @@ async function commandInteraction(interaction) {
   if (!command) return;
 
   if (interaction.isContextMenu())
-    console.log(`[${chalk.cyan(interaction.commandName)}] (${interaction.user.tag}) ${chalk.magenta(interaction.createdAt)}`);
+    console.log(
+      `[${chalk.cyan(interaction.commandName)}] (${
+        interaction.user.tag
+      }) ${chalk.magenta(interaction.createdAt)}`
+    );
   else
-    console.log(`[${chalk.cyan(interaction.toString())}] (${interaction.user.tag}) ${chalk.magenta(interaction.createdAt)}`);
+    console.log(
+      `[${chalk.cyan(interaction.toString())}] (${
+        interaction.user.tag
+      }) ${chalk.magenta(interaction.createdAt)}`
+    );
 
- try {
+  try {
     await command.execute(interaction, client);
-  } catch(e) {
+  } catch (e) {
     console.log(chalk.red(e));
-    if (!interaction.replied && !interaction.deferred) await interaction.reply({
-      content:"Ocorreu um erro ao tentar executar esse comando! (o-o;;",
-      ephemeral:true
-    });
+    if (!interaction.replied && !interaction.deferred)
+      await interaction.reply({
+        content: "Ocorreu um erro ao tentar executar esse comando! (o-o;;",
+        ephemeral: true,
+      });
   }
 }
 
 async function componentInteraction(interaction) {
-  const [ componentName ] = interaction.customId.split(":",1);
-  
+  const [componentName] = interaction.customId.split(":", 1);
+
   const component = client.components.get(componentName);
   if (!component) return;
 
-  console.log(`[${chalk.cyan(interaction.customId)}] (${interaction.user.tag}) ${chalk.magenta(interaction.createdAt)}`);
+  console.log(
+    `[${chalk.cyan(interaction.customId)}] (${
+      interaction.user.tag
+    }) ${chalk.magenta(interaction.createdAt)}`
+  );
   try {
     await component.execute(interaction, client);
-  } catch(e) {
+  } catch (e) {
     console.log(chalk.red(e));
     await interaction.reply({
-      content:"Ocorreu um erro ao tentar executar essa ação! (o-o;;",
-      ephemeral:true
+      content: "Ocorreu um erro ao tentar executar essa ação! (o-o;;",
+      ephemeral: true,
     });
   }
 }
 
+async function alarmTick() {
+  const now = Date.now();
+  console.log(`[${chalk.yellow("ALARM")}] alarm tick`);
+  for (const [guildId, alarms] of client.alarms) {
+    for (const [alarmId, alarm] of alarms) {
+      if (alarm.time <= now) {
+        console.log(alarm);
+        alarms.delete(alarmId);
+
+        const alarmChannelId = client.instances.get(alarm.guildId)?.settings
+          .alarmChannel;
+        if (!alarmChannelId) continue;
+
+        const guild = await client.guilds.fetch(alarm.guildId);
+        if (!guild) continue;
+
+        const channel = await guild.channels.fetch(alarm.channelId);
+        if (!channel) continue;
+
+        const alarmChannel = await guild.channels.fetch(alarmChannelId);
+        if (!alarmChannel) continue;
+
+        const row = new Discord.MessageActionRow().addComponents(
+          new Discord.MessageButton()
+            .setLabel("Ir para o canal")
+            .setURL(
+              `https://discord.com/channels/${alarm.guildId}/${alarm.channelId}/${alarm.messageId}`
+            )
+            .setStyle("LINK")
+        );
+
+        try {
+          alarmChannel.send({
+            content: `@everyone, Alarme acionado em ${channel}!`,
+            components: [row],
+          });
+          console.log(
+            `[${chalk.yellow("ALARM")}] Alarme em ${guild} (${
+              guild.id
+            }) acionado ${chalk.magenta(Date())}`
+          );
+        } catch (error) {
+          console.log(chalk.red(error));
+        }
+      }
+    }
+  }
+}
 
 // Eventos
-client.on('ready', async () => {
+client.on("ready", async () => {
   console.log("Pronto!");
-  
+
   const guilds = await client.guilds.cache;
   console.group(chalk.yellowBright("Guilds"));
-  for (const [,guild] of guilds) {
+  for (const [, guild] of guilds) {
     console.group(`${chalk.cyanBright(guild.name)} [${guild.memberCount}]`);
     console.log(`${chalk.green("id:")} ${guild.id}`);
     console.log(`${chalk.green("icon:")} ${guild.iconURL()}`);
     console.log(`${chalk.green("joined:")} ${chalk.magenta(guild.joinedAt)}`);
-    console.log()
+    console.log();
     console.groupEnd();
   }
   console.groupEnd();
+  setInterval(alarmTick, 30000);
 });
 
 client.on("interactionCreate", (interaction) => {
-  if (interaction.isAutocomplete())
-    autocompleteInteraction(interaction);
+  if (interaction.isAutocomplete()) autocompleteInteraction(interaction);
   else if (interaction.isMessageComponent() || interaction.isModalSubmit())
     componentInteraction(interaction);
   else if (interaction.isCommand() || interaction.isContextMenu())
@@ -174,13 +251,21 @@ client.on("messageCreate", (message) => {
 
   if (result?.length) {
     message.reply(result);
-    console.log(`[${chalk.cyan("ROLL")}] (${message.author.tag}) ${chalk.magenta(Date())}\n${result.trim()}`);
+    console.log(
+      `[${chalk.cyan("ROLL")}] (${message.author.tag}) ${chalk.magenta(
+        Date()
+      )}\n${result.trim()}`
+    );
   }
 });
 
 client.on("guildCreate", (guild) => {
   client.instances.set(guild.id, new Rog.Instance({ id: guild.id }));
-  console.log(`[${chalk.blueBright("GUILD")}] "${guild}" criada, adicionada Instance da mesma`);
+  console.log(
+    `[${chalk.blueBright(
+      "GUILD"
+    )}] "${guild}" criada, adicionada Instance da mesma`
+  );
   client.saveInstances();
 });
 
@@ -193,8 +278,7 @@ client.on("guildDelete", (guild) => {
     });
   }
   console.log(`[${chalk.redBright("GUILD")}] "${guild}" deletada`);
-})
-
+});
 
 // Login
 client.login();
