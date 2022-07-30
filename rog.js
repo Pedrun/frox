@@ -280,15 +280,6 @@ function hasDMPermissions(member, DMrole) {
   return member.roles.cache.has(DMrole) || member.permissions.has(8n);
 }
 
-class Alarm {
-  constructor({ time, uuid, guildId, channelId, messageId }) {
-    this.time = time;
-    this.uuid = uuid;
-    this.guildId = guildId;
-    this.channelId = channelId;
-  }
-}
-
 // Export
 const Rog = {
   client: {},
@@ -300,7 +291,6 @@ const Rog = {
   AttrResponse,
   CardBar,
   CardBuff,
-  Alarm,
   hasDMPermissions,
   possibleAttr,
 };

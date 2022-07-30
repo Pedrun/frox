@@ -5,7 +5,7 @@ const chalk = require("chalk");
 const Rog = require("./rog");
 const rogscript = require("./parser/parser.js");
 const { normalizeStr, ellipsis } = require("./util");
-const { time } = require("console");
+const AlarmManager = require("./alarm");
 
 // Declarações
 const { Intents } = Discord;
@@ -33,7 +33,7 @@ client.autocomplete = new Discord.Collection();
 client.commands = new Discord.Collection();
 client.components = new Discord.Collection();
 client.instances = new Rog.InstanceManager();
-client.alarms = new Discord.Collection();
+client.alarmManager = new AlarmManager(client);
 Rog.client = client;
 
 // Arquivos
@@ -157,55 +157,6 @@ async function componentInteraction(interaction) {
   }
 }
 
-async function alarmTick() {
-  const now = Date.now();
-  console.log(`[${chalk.yellow("ALARM")}] alarm tick`);
-  for (const [guildId, alarms] of client.alarms) {
-    for (const [alarmId, alarm] of alarms) {
-      if (alarm.time <= now) {
-        console.log(alarm);
-        alarms.delete(alarmId);
-
-        const alarmChannelId = client.instances.get(alarm.guildId)?.settings
-          .alarmChannel;
-        if (!alarmChannelId) continue;
-
-        const guild = await client.guilds.fetch(alarm.guildId);
-        if (!guild) continue;
-
-        const channel = await guild.channels.fetch(alarm.channelId);
-        if (!channel) continue;
-
-        const alarmChannel = await guild.channels.fetch(alarmChannelId);
-        if (!alarmChannel) continue;
-
-        const row = new Discord.MessageActionRow().addComponents(
-          new Discord.MessageButton()
-            .setLabel("Ir para o canal")
-            .setURL(
-              `https://discord.com/channels/${alarm.guildId}/${alarm.channelId}/${alarm.messageId}`
-            )
-            .setStyle("LINK")
-        );
-
-        try {
-          alarmChannel.send({
-            content: `@everyone, Alarme acionado em ${channel}!`,
-            components: [row],
-          });
-          console.log(
-            `[${chalk.yellow("ALARM")}] Alarme em ${guild} (${
-              guild.id
-            }) acionado ${chalk.magenta(Date())}`
-          );
-        } catch (error) {
-          console.log(chalk.red(error));
-        }
-      }
-    }
-  }
-}
-
 // Eventos
 client.on("ready", async () => {
   console.log("Pronto!");
@@ -221,7 +172,6 @@ client.on("ready", async () => {
     console.groupEnd();
   }
   console.groupEnd();
-  setInterval(alarmTick, 30000);
 });
 
 client.on("interactionCreate", (interaction) => {
