@@ -13,7 +13,7 @@ module.exports = {
     const alarm = client.alarmManager.deleteAlarm(alarmId);
     if (!alarm)
       return interaction.reply({
-        content: `${interaction.user}, Não consegui encontrar esse alarme. Talvez ele já tenha sido cancelado ou ativado.`,
+        content: `${interaction.user}, Não consegui encontrar esse alarme. Talvez ele já tenha sido cancelado ou acionado.`,
         ephemeral: true,
       });
 

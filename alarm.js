@@ -55,7 +55,7 @@ class AlarmManager {
     if (!targetChannel) return;
 
     console.log(
-      `[${chalk.yellow(
+      `\n[${chalk.yellow(
         "ALARM"
       )}] Alarme acionado em ${targetChannel} ${chalk.magenta(new Date())}`
     );

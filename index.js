@@ -6,6 +6,7 @@ const Rog = require("./rog");
 const rogscript = require("./parser/parser.js");
 const { normalizeStr, ellipsis } = require("./util");
 const AlarmManager = require("./alarm");
+const { scheduleJob } = require("node-schedule");
 
 // Declarações
 const { Intents } = Discord;
@@ -60,7 +61,7 @@ client.saveInstances = async function () {
     fs.writeFileSync(`./saves/${k}.json`, JSON.stringify(v, null, "\t"));
   });
   console.log(
-    `[${chalk.greenBright(
+    `\n[${chalk.greenBright(
       "SAVE"
     )}] Todos os saves foram salvos em "./saves" ${chalk.magenta(Date())}`
   );
@@ -112,13 +113,13 @@ async function commandInteraction(interaction) {
 
   if (interaction.isContextMenu())
     console.log(
-      `[${chalk.cyan(interaction.commandName)}] (${
+      `\n[${chalk.cyan(interaction.commandName)}] (${
         interaction.user.tag
       }) ${chalk.magenta(interaction.createdAt)}`
     );
   else
     console.log(
-      `[${chalk.cyan(interaction.toString())}] (${
+      `\n[${chalk.cyan(interaction.toString())}] (${
         interaction.user.tag
       }) ${chalk.magenta(interaction.createdAt)}`
     );
@@ -142,7 +143,7 @@ async function componentInteraction(interaction) {
   if (!component) return;
 
   console.log(
-    `[${chalk.cyan(interaction.customId)}] (${
+    `\n[${chalk.cyan(interaction.customId)}] (${
       interaction.user.tag
     }) ${chalk.magenta(interaction.createdAt)}`
   );
@@ -172,6 +173,8 @@ client.on("ready", async () => {
     console.groupEnd();
   }
   console.groupEnd();
+
+  scheduleJob("Auto-save", "*/10 * * * *", client.saveInstances);
 });
 
 client.on("interactionCreate", (interaction) => {
@@ -202,7 +205,7 @@ client.on("messageCreate", (message) => {
   if (result?.length) {
     message.reply(result);
     console.log(
-      `[${chalk.cyan("ROLL")}] (${message.author.tag}) ${chalk.magenta(
+      `\n[${chalk.cyan("ROLL")}] (${message.author.tag}) ${chalk.magenta(
         Date()
       )}\n${result.trim()}`
     );
@@ -212,7 +215,7 @@ client.on("messageCreate", (message) => {
 client.on("guildCreate", (guild) => {
   client.instances.set(guild.id, new Rog.Instance({ id: guild.id }));
   console.log(
-    `[${chalk.blueBright(
+    `\n[${chalk.blueBright(
       "GUILD"
     )}] "${guild}" criada, adicionada Instance da mesma`
   );
@@ -227,9 +230,8 @@ client.on("guildDelete", (guild) => {
       if (err) throw err;
     });
   }
-  console.log(`[${chalk.redBright("GUILD")}] "${guild}" deletada`);
+  console.log(`\n[${chalk.redBright("GUILD")}] "${guild}" deletada`);
 });
 
 // Login
 client.login();
-setInterval(client.saveInstances, 1800000);
