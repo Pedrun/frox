@@ -208,7 +208,9 @@ client.on('messageCreate', (message) => {
     let result = client.evaluateRoll(content, player, forceOutput);
 
     if (result?.length) {
-        message.reply(result);
+        message
+            .reply(result)
+            .catch((err) => console.log(`[${chalk.red('ERROR')}] ${err}`));
         console.log(
             `\n[${chalk.cyan('ROLL')}] (${message.author.tag}) ${chalk.magenta(
                 Date()

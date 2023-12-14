@@ -37,7 +37,7 @@ class Instance {
         this.settings = new InstanceSettings(settings);
         this.scripts = new Collection(scripts);
     }
-
+        
     get guild() {
         return Rog.client.guilds.fetch(this.id);
     }

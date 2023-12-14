@@ -1,72 +1,96 @@
-const { MessageEmbed, MessageActionRow, MessageButton, MessageComponentInteraction } = require('discord.js');
+const {
+    MessageEmbed,
+    MessageActionRow,
+    MessageButton,
+    MessageComponentInteraction,
+} = require('discord.js');
 const { hasDMPermissions } = require('../rog.js');
-const { version } = require("../package.json");
+const { version } = require('../package.json');
 const { ellipsis } = require('../util.js');
 module.exports = {
-  name:"card",
-  /**
-   * @param {MessageComponentInteraction} interaction 
-   */
-  async execute(interaction, client) {
-    let [_name, user, page] = interaction.customId.split(":");
-    page = parseInt(page);
-    const member = await interaction.guild.members.fetch(user);
-    const instance = client.instances.greate(interaction.guildId);
-    const player = instance.greateUser(user);
+    name: 'card',
+    /**
+     * @param {MessageComponentInteraction} interaction
+     */
+    async execute(interaction, client) {
+        let [_name, user, page] = interaction.customId.split(':');
+        page = parseInt(page);
+        const member = await interaction.guild.members.fetch(user);
+        const instance = client.instances.greate(interaction.guildId);
+        const player = instance.greateUser(user);
 
-    if (!player.card)
-      return interaction.reply({ content: `${interaction.user}, **Não encontrei nenhuma ficha.** *Crie uma lista usando \` /fichas criar \`*`, ephemeral:true});
-    if (player.card.isPrivate && interaction.user.id !== user && !hasDMPermissions(interaction.member, instance.settings.DMrole)) {
-      return interaction.reply({ content: `${interaction.user}, **Você não tem permissão para ver essa ficha**`, ephemeral:true});
-    }
+        if (!player.card)
+            return interaction.reply({
+                content: `${interaction.user}, **Não encontrei nenhuma ficha.** *Crie uma lista usando \` /fichas criar \`*`,
+                ephemeral: true,
+            });
+        if (
+            player.card.isPrivate &&
+            interaction.user.id !== user &&
+            !hasDMPermissions(interaction.member, instance.settings.DMrole)
+        ) {
+            return interaction.reply({
+                content: `${interaction.user}, **Você não tem permissão para ver essa ficha**`,
+                ephemeral: true,
+            });
+        }
 
-    let field = "\n";
-    let index = 0;
-    for (let [k,v] of player.card.attributes) {
-      if (isInRange(index++, page*16, (page+1) * 16)) {
-        field += `${k}: ${v.toLocaleString('pt-BR')}\n`;
-      }
-    }
-    field = ellipsis(field, 1000);
-    
-    const multiplePages = player.card.attributes.size > 16;
-    const avatar = member.avatarURL() || member.user.avatarURL();
-    const embed = new MessageEmbed()
-    .setTitle(`👤 Ficha de ${player.card.name}`)
-    .setColor(player.card.color || member.displayColor)
-    .setThumbnail(avatar)
-    .setFooter({ text: `versão ${version}`, iconURL: avatar });
-      // .setAuthor(member.user.username)
+        let field = '\n';
+        let index = 0;
+        for (let [k, v] of player.card.attributes) {
+            if (isInRange(index++, page * 16, (page + 1) * 16)) {
+                field += `${k}: ${v.toLocaleString('pt-BR')}\n`;
+            }
+        }
+        field = ellipsis(field, 1000);
 
-    for (let bar of player.card.bars) {
-      embed.addField(bar.name, `${player.card.getBar(bar)}`, true);
-    }
+        const multiplePages = player.card.attributes.size > 16;
+        const avatar = member.avatarURL() || member.user.avatarURL();
+        const embed = new MessageEmbed()
+            .setTitle(`👤 Ficha de ${player.card.name}`)
+            .setColor(player.card.color || member.displayColor)
+            .setThumbnail(avatar)
+            .setFooter({ text: `versão ${version}`, iconURL: avatar });
+        // .setAuthor(member.user.username)
 
-    if (field.length > 0) {
-      embed.addField("Atributos", `\`\`\`json${field}\`\`\``)
-    } else {
-      embed.addField("Atributos", `${member.user} **não tem nenhum atributo em sua ficha atual.**`)
-    }
+        for (let bar of player.card.bars) {
+            embed.addField(bar.name, `${player.card.getBar(bar)}`, true);
+        }
 
-    const nextPage = (multiplePages && page===0)?1:0;
-    const row = new MessageActionRow()
-    .addComponents(
-      new MessageButton()
-        .setLabel(multiplePages?"Próxima página":"Atualizar")
-        .setCustomId(`card:${user}:${nextPage}`)
-        .setEmoji('🔄')
-        .setStyle('PRIMARY'),
-      new MessageButton()
-        .setLabel("Abrir inventário")
-        .setCustomId(`inv:${user}`)
-        .setEmoji('🎒')
-        .setStyle('SUCCESS')
-        .setDisabled(true)
-    );
-   interaction.update({ embeds: [embed], components: [row], ephemeral: player.card.isPrivate });
-  }
-}
+        if (field.length > 0) {
+            embed.addField('Atributos', `\`\`\`json${field}\`\`\``);
+        } else {
+            embed.addField(
+                'Atributos',
+                `${member.user} **não tem nenhum atributo em sua ficha atual.**`
+            );
+        }
 
-function isInRange(number=0, min=0, max=0) {
-  return number >= min && number < max;
+        let nextPage = 0;
+        if (multiplePages) {
+            nextPage = (page + 1) % Math.ceil(player.card.attributes.size / 16);
+        }
+        const row = new MessageActionRow().addComponents(
+            new MessageButton()
+                .setLabel(multiplePages ? 'Próxima página' : 'Atualizar')
+                .setCustomId(`card:${user}:${nextPage}`)
+                .setEmoji('🔄')
+                .setStyle('PRIMARY'),
+            new MessageButton()
+                .setLabel('Abrir inventário')
+                .setCustomId(`inv:${user}`)
+                .setEmoji('🎒')
+                .setStyle('SUCCESS')
+                .setDisabled(true)
+        );
+        interaction.update({
+            embeds: [embed],
+            components: [row],
+            ephemeral: player.card.isPrivate,
+        });
+    },
+};
+
+function isInRange(number = 0, min = 0, max = 0) {
+    return number >= min && number < max;
 }
