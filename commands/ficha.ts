@@ -1,8 +1,13 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { CommandInteraction, MessageEmbed } = require('discord.js');
-const { normalizeStr } = require('../util.js');
-const { possibleAttr, CardBar } = require('../rog.js');
-
+import {
+    SlashCommandBuilder,
+    ChatInputCommandInteraction,
+    GuildMember,
+    EmbedBuilder,
+    HexColorString,
+} from 'discord.js';
+import { normalizeStr } from '../util';
+import { CardBar, possibleAttr } from '../rog';
+import { FroxClient } from '../client';
 /*
 /ficha atributo adicionar atributo:String valor?:String
 /ficha atributo remover atributo:String
@@ -13,7 +18,7 @@ const { possibleAttr, CardBar } = require('../rog.js');
 /ficha privar privar:Boolean
 */
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName('ficha')
         .setDescription('Gerencia a sua ficha atual')
@@ -131,7 +136,10 @@ module.exports = {
     /**
      * @param {CommandInteraction} interaction
      */
-    async execute(interaction, client) {
+    async execute(
+        interaction: ChatInputCommandInteraction<'cached' | 'raw'>,
+        client: FroxClient
+    ) {
         const group = interaction.options.getSubcommandGroup(false);
         const subCommand = interaction.options.getSubcommand();
         const instance = client.instances.greate(interaction.guildId);
@@ -145,10 +153,10 @@ module.exports = {
 
         // /ficha atributo adicionar atributos:String
         if (group === 'atributo' && subCommand === 'adicionar') {
-            let attributes = normalizeStr(
-                interaction.options.getString('atributos')
+            let attrString = normalizeStr(
+                interaction.options.getString('atributos', true)
             ).toUpperCase();
-            attributes = attributes.split(/\s+/);
+            let attributes = attrString.split(/\s+/);
 
             if (attributes.length + player.card.attributes.size > 64) {
                 return interaction.reply({
@@ -158,7 +166,8 @@ module.exports = {
             }
             let addedAttributes = [];
             for (let attribute of attributes) {
-                let [_match, attrName, value] = attribute.match(listRegex);
+                let [_match, attrName, value] =
+                    attribute.match(listRegex) ?? [];
                 if (!possibleAttr.test(attrName))
                     return interaction.reply({
                         content: `${interaction.user}, **"${attrName}"** não é um nome de atributo válido. apenas são aceitas letras de **A-Z**, ** _**, **sem espaços** e no máximo **32 caracteres**`,
@@ -181,7 +190,7 @@ module.exports = {
         // /ficha atributo remover atributo:String
         if (group === 'atributo' && subCommand === 'remover') {
             const atributo = normalizeStr(
-                interaction.options.getString('atributo')
+                interaction.options.getString('atributo', true)
             ).toUpperCase();
 
             if (!player.card.hasAttr(atributo))
@@ -216,12 +225,14 @@ module.exports = {
                     ephemeral: true,
                 });
 
-            const nome = interaction.options.getString('nome').slice(0, 32);
+            const nome = interaction.options
+                .getString('nome', true)
+                .slice(0, 32);
             const valor = normalizeStr(
-                interaction.options.getString('valor')
+                interaction.options.getString('valor', true)
             ).toUpperCase();
             const máximo = normalizeStr(
-                interaction.options.getString('máximo')
+                interaction.options.getString('máximo', true)
             ).toUpperCase();
 
             player.card.bars.push(
@@ -236,7 +247,9 @@ module.exports = {
 
         // /ficha barra remover barra:String
         if (group === 'barra' && subCommand === 'remover') {
-            const barra = interaction.options.getString('barra').toLowerCase();
+            const barra = interaction.options
+                .getString('barra', true)
+                .toLowerCase();
             const index = player.card.bars.findIndex(
                 (b) => b.name.toLowerCase() == barra
             );
@@ -257,7 +270,7 @@ module.exports = {
 
         // /ficha renomear nome:String
         if (subCommand === 'renomear') {
-            const nome = interaction.options.getString('nome');
+            const nome = interaction.options.getString('nome', true);
             player.card.name = nome;
             interaction.reply({ content: `Ficha renomeada para "${nome}"` });
             client.saveInstances();
@@ -270,11 +283,11 @@ module.exports = {
 
             if (!cor) {
                 player.card.color = '';
-                const embed = new MessageEmbed()
+                const embed = new EmbedBuilder()
                     .setTitle(
                         `A cor de ${player.card.name} foi mudada para a cor padrão (cor do cargo)`
                     )
-                    .setColor(interaction.member.displayColor);
+                    .setColor((interaction.member as GuildMember).displayColor);
                 interaction.reply({ embeds: [embed] });
                 client.saveInstances();
                 return;
@@ -287,11 +300,11 @@ module.exports = {
                 });
 
             player.card.color = cor;
-            const embed = new MessageEmbed()
+            const embed = new EmbedBuilder()
                 .setTitle(
                     `A cor de ${player.card.name} foi definida como "${cor}"`
                 )
-                .setColor(cor);
+                .setColor(cor as HexColorString);
 
             interaction.reply({ embeds: [embed] });
             client.saveInstances();

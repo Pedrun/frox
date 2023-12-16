@@ -1,79 +1,101 @@
-const { Collection } = require('@discordjs/collection');
-const chalk = require('chalk');
-const { normalizeStr } = require('./util');
+import { Collection, GuildMember } from 'discord.js';
+import { normalizeStr } from './util';
+import { FroxClient } from './client';
+import { red } from 'chalk';
 
-function toJSON() {
-    let json = {};
+interface ToJSON {
+    toJSON(): Object;
+}
+
+function toJSON(this: Instance | Card) {
+    let json: Record<string, any> = {};
+
     for (let [key, val] of Object.entries(this)) {
         if (val instanceof Map) {
             json[key] = Array.from(val);
-            continue;
+        } else {
+            json[key] = val;
         }
-
-        json[key] = val;
     }
 
     return json;
 }
 
-const possibleAttr = /^[A-Z_]{1,32}$/;
+export const possibleAttr = /^[A-Z_]{1,32}$/;
 
-class InstanceManager extends Collection {
-    greate(key) {
-        if (this.has(key)) return this.get(key);
+export class InstanceManager extends Collection<string, Instance> {
+    greate(key: string) {
+        let ins = this.get(key);
+        if (ins != null) return ins;
         const newInstance = new Instance({ id: key });
         this.set(key, newInstance);
         return newInstance;
     }
 }
 
-class Instance {
+export class Instance implements ToJSON {
+    id: string;
+    users: Collection<string, Player>;
+    settings: InstanceSettings;
+    scripts: Collection<string, string>;
+
     constructor({ id = '', users = [], settings = {}, scripts = [] }) {
         this.id = id;
-        this.users = new Collection(users).mapValues(
+        this.users = new Collection<string, Object>(users).mapValues(
             (v) => new Player({ ...v, guildId: this.id })
         );
 
         this.settings = new InstanceSettings(settings);
         this.scripts = new Collection(scripts);
     }
-        
+
     get guild() {
-        return Rog.client.guilds.fetch(this.id);
+        return Rog.client?.guilds.fetch(this.id);
     }
 
-    createUser(userId) {
+    createUser(userId: string) {
         const newUser = new Player({
             id: userId,
         });
         this.users.set(userId, newUser);
         return newUser;
     }
-    hasUser(userId) {
+    hasUser(userId: string) {
         return this.users.has(userId);
     }
-    getUser(userId) {
+    getUser(userId: string) {
         return this.users.get(userId);
     }
-    greateUser(userId) {
-        if (this.hasUser(userId)) {
-            return this.getUser(userId);
-        }
+    greateUser(userId: string) {
+        let user = this.getUser(userId);
+        if (user != null) return user;
         return this.createUser(userId);
     }
+    get toJSON() {
+        return toJSON;
+    }
 }
-Instance.prototype.toJSON = toJSON;
 
-class InstanceSettings {
+export class InstanceSettings {
+    alarmChannel: string;
+    listChannel: string;
+    DMRole: string;
     constructor({ alarmChannel = '', listChannel = '', DMrole = '' }) {
         this.alarmChannel = alarmChannel;
         this.listChannel = listChannel;
-        this.DMrole = DMrole;
+        this.DMRole = DMrole;
     }
 }
 
 const tagRegex = /\{([A-Z_]+)\}/g;
-class Player {
+
+export class Player {
+    id: string;
+    guildId: string;
+    nameSuffix: string;
+    suffixSeparator: string;
+    cardIndex: number;
+    cards: Card[];
     constructor({
         id = '',
         guildId = '',
@@ -89,7 +111,8 @@ class Player {
 
         this.cardIndex = cardIndex;
         this.cards = cards.map(
-            (c) => new Card({ ...c, playerId: this.id, guildId: this.guildId })
+            (c: Object) =>
+                new Card({ ...c, playerId: this.id, guildId: this.guildId })
         );
     }
 
@@ -101,31 +124,34 @@ class Player {
     }
     async updateSuffix() {
         if (!this.nameSuffix.length || !this.suffixSeparator.length) return;
-        let newTag = this.nameSuffix.replace(tagRegex, (match, group) => {
-            let attr = group.toUpperCase();
-            if (this.card.hasAttr(attr))
-                return this.card.getAttr(group.toUpperCase());
-            return match;
-        });
+        let newTag = this.nameSuffix.replace(
+            tagRegex,
+            (match, group: string) => {
+                let attr = group.toUpperCase();
+                return (
+                    this.card.getAttr(group.toUpperCase())?.toString() ?? match
+                );
+            }
+        );
 
         try {
-            const guild = await Rog.client.guilds.fetch(this.guildId);
-            const member = await guild.members.fetch(this.id);
-            let username = member.displayName.split(this.suffixSeparator)[0];
-            username = username.slice(
+            const guild = await Rog.client?.guilds.fetch(this.guildId);
+            const member = await guild?.members.fetch(this.id);
+            let username = member?.displayName.split(this.suffixSeparator)[0];
+            username = username?.slice(
                 0,
                 32 - (newTag.length + this.suffixSeparator.length)
             );
 
-            await member.setNickname(username + this.suffixSeparator + newTag);
+            await member?.setNickname(username + this.suffixSeparator + newTag);
         } catch (e) {
-            // console.log(chalk.red(e));
+            // console.log(red(e));
         }
     }
 
     // Instance getter
     get instance() {
-        return Rog.client.instances.get(this.guild);
+        return Rog.client?.instances.get(this.guildId);
     }
 
     // Current Card getter
@@ -134,8 +160,17 @@ class Player {
     }
 }
 
-class Card {
+export class Card implements ToJSON {
+    playerId: string;
+    guildId: string;
+    name: string;
+    color: string;
+    attributes: Collection<string, number>;
+    bars: CardBar[];
+    isPrivate: boolean;
     constructor({
+        playerId = '',
+        guildId = '',
         name = '',
         color = '',
         attributes = [],
@@ -143,66 +178,74 @@ class Card {
         bars = [],
         isPrivate = false,
     }) {
-        this.name = name;
+        (this.playerId = playerId),
+            (this.guildId = guildId),
+            (this.name = name);
         this.color = color;
         this.attributes = new Collection(attributes);
 
-        this.buffs = buffs.map((b) => new CardBuff(b));
         this.bars = bars.map((b) => new CardBar(b));
 
         this.isPrivate = isPrivate;
     }
 
-    hasAttr(attr) {
+    hasAttr(attr: string) {
         let cleanAttr = normalizeStr(attr.toUpperCase());
-        return this.attributes.has(cleanAttr);
+        if (cleanAttr != null) return this.attributes.has(cleanAttr);
+        else return false;
     }
-    getAttr(attr) {
+    getAttr(attr: string) {
         let cleanAttr = normalizeStr(attr.toUpperCase());
+        if (cleanAttr == null) return;
         if (!this.hasAttr(cleanAttr)) return;
         return this.attributes.get(cleanAttr);
     }
     getAttrBulk() {
-        return this.attributes.map((v, k) => this.getAttr(k));
+        return this.attributes.map((_v, k) => this.getAttr(k));
     }
-    setAttr(attr, value, autoRename = true) {
+    setAttr(attr: string, value: string | number) {
         let cleanAttr = normalizeStr(attr.toUpperCase());
-        if (!this.hasAttr(cleanAttr))
+        if (cleanAttr == null || !this.hasAttr(cleanAttr))
             throw ReferenceError(`"${cleanAttr}" is not a defined attribute`);
 
-        let val = parseInt(value);
-        if (val == null || !isFinite(val)) return this;
+        if (typeof value == 'string') {
+            value = parseInt(value);
+        }
+        if (value == null || !isFinite(value)) return this;
 
-        this.attributes.set(cleanAttr, val);
+        this.attributes.set(cleanAttr, value);
         return this;
     }
-    setAttrBulk(attrMap) {
+    setAttrBulk(attrMap: [string, number][]) {
         for (let [k, v] of attrMap) {
             let cleanAttr = normalizeStr(k.toUpperCase());
-            if (this.hasAttr(cleanAttr)) this.setAttr(k, v);
+            if (cleanAttr != null && this.hasAttr(cleanAttr))
+                this.setAttr(k, v);
         }
 
         return this;
     }
-    addAttr(attr, value) {
+    addAttr(attr: string, value: string | number) {
         let cleanAttr = normalizeStr(attr.toUpperCase());
-        let val = parseInt(value) || 0;
+        if (cleanAttr == null) return this;
+        if (typeof value == 'string') value = parseInt(value) || 0;
 
         if (!possibleAttr.test(cleanAttr))
             throw SyntaxError(
                 `"attr" does not match the regex ${possibleAttr}`
             );
 
-        this.attributes.set(cleanAttr, val);
+        this.attributes.set(cleanAttr, value);
         return this;
     }
-    removeAttr(attr) {
+    removeAttr(attr: string) {
         let cleanAttr = normalizeStr(attr.toUpperCase());
-        if (this.hasAttr(cleanAttr)) this.attributes.delete(cleanAttr);
+        if (cleanAttr != null && this.hasAttr(cleanAttr))
+            this.attributes.delete(cleanAttr);
         return this;
     }
-    setPrivate(value) {
-        this.private = !!value;
+    setPrivate(value: boolean) {
+        this.isPrivate = value;
         return this;
     }
 
@@ -210,7 +253,7 @@ class Card {
      * @param {CardBar} bar
      */
     getBar(
-        bar,
+        bar: CardBar,
         barSize = 6,
         fill = '<:bar2:957638608490217502>',
         empty = '<:barempty2:957638608557322270>'
@@ -232,32 +275,15 @@ class Card {
     toString() {
         return this.name;
     }
-}
-Card.prototype.toJSON = toJSON;
-
-class Attribute {
-    constructor({ value = 0, dynamic = false }) {
-        this.value = value;
-        this.dynamic = dynamic;
+    get toJSON() {
+        return toJSON;
     }
 }
 
-class AttrResponse {
-    constructor(name = '', base = 0, buff = 0) {
-        this.name = name;
-        this.base = base;
-        this.buff = buff;
-        this.total = base + buff;
-    }
-    valueOf() {
-        return this.total;
-    }
-    toString() {
-        return this.base + (this.buff == 0) ? '' : `(+${this.buff})`;
-    }
-}
-
-class CardBar {
+export class CardBar {
+    name: string;
+    value: string;
+    max: string;
     constructor({ name = '', value = '', max = '' }) {
         this.name = name;
         this.value = value;
@@ -265,41 +291,15 @@ class CardBar {
     }
 }
 
-class CardBuff {
-    constructor({
-        name = '',
-        duration = 0,
-        rounds = 0,
-        icon = '',
-        values = [],
-    }) {
-        this.name = name;
-        this.icon = icon;
-
-        this.duration = duration;
-        this.rounds = rounds;
-
-        this.values = new Collection(values);
-    }
-}
-CardBuff.prototype.toJSON = toJSON;
-
-function hasDMPermissions(member, DMrole) {
-    return member.roles.cache.has(DMrole) || member.permissions.has(8n);
+export function hasDMPermissions(member: GuildMember, DMRole: string) {
+    return member.roles.cache.has(DMRole) || member.permissions.has(8n);
 }
 
 // Export
-const Rog = {
-    client: {},
-    InstanceManager,
-    Instance,
-    InstanceSettings,
-    Player,
-    Card,
-    AttrResponse,
-    CardBar,
-    CardBuff,
-    hasDMPermissions,
-    possibleAttr,
+interface Rog {
+    client: FroxClient | undefined;
+}
+
+export let Rog: Rog = {
+    client: undefined,
 };
-module.exports = Rog;

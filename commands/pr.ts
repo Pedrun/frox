@@ -1,7 +1,7 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { Interaction } = require('discord.js');
+import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
+import { FroxClient } from '../client';
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName('pr')
         .setDescription('Rola dados secretamente')
@@ -15,8 +15,11 @@ module.exports = {
      *
      * @param {Interaction} interaction
      */
-    async execute(interaction, client) {
-        const expressão = interaction.options.getString('expressão');
+    async execute(
+        interaction: ChatInputCommandInteraction<'cached' | 'raw'>,
+        client: FroxClient
+    ) {
+        const expressão = interaction.options.getString('expressão', true);
         const instance = client.instances.greate(interaction.guildId);
         const player = instance.greateUser(interaction.user.id);
         const result = client.evaluateRoll(expressão, player, true);

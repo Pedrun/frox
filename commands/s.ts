@@ -1,7 +1,12 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { normalizeStr, ellipsis } = require('../util');
+import {
+    SlashCommandBuilder,
+    ChatInputCommandInteraction,
+    Collection,
+} from 'discord.js';
+import { normalizeStr, ellipsis } from '../util';
+import { FroxClient } from '../client';
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName('s')
         .setDescription('Executa um script pré-definido')
@@ -19,26 +24,36 @@ module.exports = {
                     '(Opcional) Um número que pode ser acessado no script como "$ARGS"'
                 )
         ),
-    execute(interaction, client) {
-        const scriptName = normalizeStr(interaction.options.getString('script'))
+    execute(
+        interaction: ChatInputCommandInteraction<'cached' | 'raw'>,
+        client: FroxClient
+    ) {
+        const scriptName = normalizeStr(
+            interaction.options.getString('script', true)
+        )
             .trim()
             .toLowerCase();
         const scriptArgs = interaction.options.getInteger('args');
 
         const instance = client.instances.greate(interaction.guildId);
 
-        if (!instance.scripts.has(scriptName))
-            return interaction.reply({
-                content: `${interaction.user}, não há nenhum script com o nome de "${scriptName}" nesse servidor`,
-                ephemeral: true,
-            });
-
         let variables = new Map();
         variables.set('$ARGS', scriptArgs ?? 0);
 
         const script = instance.scripts.get(scriptName);
+        if (script == null) {
+            return interaction.reply({
+                content: `${interaction.user}, não há nenhum script com o nome de "${scriptName}" nesse servidor`,
+                ephemeral: true,
+            });
+        }
         const player = instance.greateUser(interaction.user.id);
-        let result = client.evaluateRoll(script, player, true, variables);
+        let result = client.evaluateRoll(
+            script,
+            player,
+            true,
+            new Collection(variables)
+        );
 
         if (result == null) {
             return interaction.reply({

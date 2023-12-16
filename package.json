@@ -1,25 +1,30 @@
 {
-  "name": "frox",
-  "version": "1.2.1",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "deployrun": "node deploy-commands && node .",
-    "nodemon": "nodemon -i ./saves -x \"node deploy-commands && node .\""
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@discordjs/rest": "^0.4.1",
-    "chalk": "^4.1.0",
-    "date-fns": "^2.29.1",
-    "discord.js": "^13.7.0",
-    "dotenv": "^10.0.0",
-    "node-fetch": "^2.6.6",
-    "node-schedule": "^2.1.0",
-    "peggy": "^1.2.0",
-    "uuid": "^8.3.2"
-  }
+    "name": "frox",
+    "version": "2.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "deployrun": "node deploy-commands && node .",
+        "nodemon": "nodemon -i ./saves -x \"node deploy-commands && node .\""
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "chalk": "^4.1.0",
+        "date-fns": "^2.29.1",
+        "discord.js": "^14.14.1",
+        "dotenv": "^10.0.0",
+        "node-fetch": "^2.6.6",
+        "node-schedule": "^2.1.0",
+        "peggy": "^1.2.0",
+        "uuid": "^8.3.2"
+    },
+    "devDependencies": {
+        "@types/node": "^20.10.4",
+        "@types/node-fetch": "^2.6.9",
+        "@types/node-schedule": "^2.1.5",
+        "@types/uuid": "^9.0.7"
+    }
 }
