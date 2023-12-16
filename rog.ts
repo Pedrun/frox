@@ -229,6 +229,7 @@ export class Card implements ToJSON {
         let cleanAttr = normalizeStr(attr.toUpperCase());
         if (cleanAttr == null) return this;
         if (typeof value == 'string') value = parseInt(value) || 0;
+        if (value == null) value = 0;
 
         if (!possibleAttr.test(cleanAttr))
             throw SyntaxError(

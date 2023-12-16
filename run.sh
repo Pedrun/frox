@@ -1,1 +1,1 @@
-node .
+ts-node index.ts
